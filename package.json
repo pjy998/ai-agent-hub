@@ -1,0 +1,52 @@
+{
+  "name": "ai-agent-hub",
+  "version": "0.0.1",
+  "description": "AI Agent Hub - VS Code extension and MCP integration for AI-driven coding workflows",
+  "main": "index.js",
+  "scripts": {
+    "build": "npm run build:ai-agent && npm run build:ai-mcp",
+    "build:ai-agent": "cd packages/ai-agent && npm run build",
+    "build:ai-mcp": "cd packages/ai-mcp && npm run build",
+    "dev": "npm run dev:ai-agent && npm run dev:ai-mcp",
+    "dev:ai-agent": "cd packages/ai-agent && npm run dev",
+    "dev:ai-mcp": "cd packages/ai-mcp && npm run dev",
+    "test": "npm run test:ai-agent && npm run test:ai-mcp",
+    "test:ai-agent": "cd packages/ai-agent && npm test",
+    "test:ai-mcp": "cd packages/ai-mcp && npm test",
+    "lint": "eslint packages/*/src/**/*.ts",
+    "clean": "rimraf packages/*/dist packages/*/out"
+  },
+  "workspaces": [
+    "packages/*"
+  ],
+  "keywords": [
+    "vscode",
+    "extension",
+    "ai",
+    "copilot",
+    "mcp",
+    "coding",
+    "automation"
+  ],
+  "author": "pjy998",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pjy998/ai-agent-hub.git"
+  },
+  "bugs": {
+    "url": "https://github.com/pjy998/ai-agent-hub/issues"
+  },
+  "homepage": "https://github.com/pjy998/ai-agent-hub#readme",
+  "devDependencies": {
+    "@types/node": "^18.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.0.0",
+    "rimraf": "^5.0.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.17.3"
+  }
+}

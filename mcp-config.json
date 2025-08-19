@@ -1,0 +1,53 @@
+{
+  "mcpServers": {
+    "ai-agent-hub": {
+      "command": "npx",
+      "args": ["ai-agent-hub-mcp", "start"],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "NODE_ENV": "production"
+      }
+    }
+  },
+  "description": "AI Agent Hub MCP Server Configuration for VS Code",
+  "installation": {
+    "global": "npm install -g ai-agent-hub-mcp",
+    "npx": "npx ai-agent-hub-mcp start",
+    "local": "npm install ai-agent-hub-mcp"
+  },
+  "usage": {
+    "vscode": {
+      "settings": ".vscode/settings.json",
+      "manual": "Add this configuration to your VS Code settings",
+      "automatic": "Use the provided .vscode/settings.json file"
+    },
+    "cli": {
+      "start": "ai-agent-mcp start",
+      "list": "ai-agent-mcp list",
+      "status": "ai-agent-mcp status"
+    }
+  },
+  "crossPlatform": {
+    "windows": {
+      "command": "npx",
+      "args": ["ai-agent-hub-mcp", "start"],
+      "transport": "stdio"
+    },
+    "darwin": {
+      "command": "npx",
+      "args": ["@ai-agent-hub/mcp", "start"],
+      "transport": "stdio"
+    },
+    "linux": {
+      "command": "npx",
+      "args": ["@ai-agent-hub/mcp", "start"],
+      "transport": "stdio"
+    }
+  },
+  "remoteSSH": {
+    "supported": true,
+    "autoDetect": true,
+    "command": "npx",
+    "args": ["@ai-agent-hub/mcp", "start"]
+  }
+}

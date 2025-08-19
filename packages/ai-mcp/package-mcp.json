@@ -1,0 +1,29 @@
+{
+  "name": "ai-agent-hub-mcp",
+  "version": "0.0.4",
+  "description": "AI Agent Hub MCP Server for VS Code",
+  "main": "dist/mcp-server.js",
+  "bin": {
+    "ai-agent-mcp": "./dist/mcp-server.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node dist/mcp-server.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^0.4.0",
+    "yaml": "^2.3.2"
+  },
+  "devDependencies": {
+    "@types/node": "^18.0.0",
+    "typescript": "^5.0.0"
+  },
+  "mcpServers": {
+    "ai-agent-hub": {
+      "command": "node",
+      "args": ["./dist/mcp-server.js"],
+      "env": {}
+    }
+  }
+}

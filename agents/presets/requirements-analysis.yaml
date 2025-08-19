@@ -1,0 +1,61 @@
+name: requirements-analysis
+description: Comprehensive requirements analysis and specification workflow
+agents:
+  - requirements
+  - coder
+
+steps:
+  - name: gather
+    agent: requirements
+    prompt: |
+      Analyze the following context to gather and clarify requirements:
+      
+      File: {{file}}
+      Language: {{language}}
+      Code Context: {{selection}}
+      Recent Changes: {{gitDiff}}
+      
+      Extract and document:
+      1. Functional requirements
+      2. Non-functional requirements (performance, security, scalability)
+      3. Business rules and constraints
+      4. User stories or use cases
+      5. Acceptance criteria
+      6. Dependencies and assumptions
+      
+      Format as structured requirements document.
+    output: requirements
+
+  - name: specify
+    agent: requirements
+    prompt: |
+      Based on the gathered requirements: {{requirements}}
+      
+      Create detailed technical specifications including:
+      1. API contracts and interfaces
+      2. Data models and schemas
+      3. Architecture decisions
+      4. Technology stack recommendations
+      5. Implementation approach
+      6. Testing strategy
+      7. Deployment considerations
+      
+      Format as technical specification document.
+    output: specification
+
+  - name: prototype
+    agent: coder
+    prompt: |
+      Create a prototype implementation based on:
+      Requirements: {{requirements}}
+      Specification: {{specification}}
+      
+      Generate:
+      - Core interfaces and types
+      - Basic implementation structure
+      - Key algorithms or business logic
+      - Configuration and setup code
+      
+      Focus on demonstrating feasibility and core concepts.
+      Return code in markdown format with explanatory comments.
+    output: prototype

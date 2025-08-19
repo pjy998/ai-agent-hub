@@ -1,0 +1,55 @@
+# Build outputs
+out/
+dist/
+
+# Compiled files
+*.js
+*.js.map
+*.d.ts
+!webpack.config.js
+!publish-to-marketplace.js
+!test-*.js
+!verify-*.js
+
+# VS Code Extension files
+*.vsix
+
+# Dependencies
+node_modules/
+
+# Logs
+*.log
+
+# Test files
+test-*.md
+
+# Temporary files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+
+# NPM files
+package-lock.json
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# Source maps
+*.map
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Coverage
+coverage/
+
+# Environment files
+.env
+.env.local
+.env.test
+.env.production
