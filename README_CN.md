@@ -50,7 +50,7 @@ flowchart TD
     subgraph "开发者操作"
         A[保存文件]
         B[选择文本]
-        C[@ai 聊天]
+        C[ai 聊天]
     end
     
     subgraph "VS Code 扩展层"
@@ -76,7 +76,7 @@ flowchart TD
     
     A -->|文件保存| D
     B -->|文本选择| D
-    C -->|@ai 输入| D
+    C -->|ai 输入| D
     D -->|收集上下文| E
     E -->|分发预设| F
     F -->|POST /mcp/run| G

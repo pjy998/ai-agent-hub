@@ -4,7 +4,7 @@
 
 > AI Agent Hub is a powerful VS Code extension that enhances Copilot Chat with structured, multi-step AI workflows for professional development. It transforms simple chat interactions into sophisticated coding assistants through configurable YAML presets, intelligent context collection, and transparent workflow execution.
 
-🚀 **Current Version**: 0.0.1 (MVP - PoC Validation)
+🚀 **Current Version**: 0.0.9 (MVP - PoC Validation)
 
 ## 🎯 Project Goals
 
@@ -23,7 +23,7 @@ flowchart TD
     subgraph "Developer Operations"
         A[Save File]
         B[Select Text]
-        C[Copilot Chat @ai]
+        C[Copilot Chat with ai]
     end
     
     subgraph "VS Code Extension Layer"
