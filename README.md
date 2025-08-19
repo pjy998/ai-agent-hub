@@ -49,7 +49,7 @@ flowchart TD
     
     A -->|onSave| D
     B -->|onSelection| D
-    C -->|@ai input| D
+    C -->|ai input| D
     D -->|collect context| E
     E -->|dispatch preset| F
     F -->|POST /mcp/run| G
@@ -157,7 +157,7 @@ VSCode -> UI: showReplay(step1, step2, step3)
 
 ### Usage
 
-- **Chat Trigger**: Enter `@ai coding` or `@ai requirements` in Copilot Chat.
+- **Chat Trigger**: Enter `ai coding` or `ai requirements` in Copilot Chat.
 - **Save Trigger**: Save a file to run `coding-with-ai.yaml`.
 - **Selection Trigger**: Select code and trigger `refactor.yaml` via right-click.
 - **Prompt Replay**: View logs in `~/.ai-agent-hub/replay/`.
@@ -165,7 +165,7 @@ VSCode -> UI: showReplay(step1, step2, step3)
 ## 🛠️ Core Features (0.0.1)
 
 ### 🎯 **Copilot Chat Enhancement Features**
-- **Smart Triggers**: Auto-start workflows on file save, code selection, and `@ai` chat
+- **Smart Triggers**: Auto-start workflows on file save, code selection, and ai chat
 - **Context Enhancement**: Automatically collect file content, Git diffs, project structure, and other contextual information
 - **Structured Conversations**: Transform simple chats into multi-step professional programming dialogues
 
