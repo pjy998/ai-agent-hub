@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { ContextCollector, createContextCollector } from './context/collector';
 
 interface CodeContext {
     file?: string;
@@ -6,6 +7,10 @@ interface CodeContext {
     selection?: string;
     gitDiff?: string;
     projectStructure?: string;
+    // 新增：智能上下文信息
+    contextSummary?: string;
+    relevantFiles?: any[];
+    estimatedTokens?: number;
 }
 
 interface WorkflowResult {
@@ -149,6 +154,13 @@ let mcpClientManager: MCPClientManager;
 function createCodingParticipant() {
     return vscode.chat.createChatParticipant('ai-agent.coding', async (request, context, stream, token) => {
         try {
+            stream.progress('正在收集智能上下文...');
+            const codeContext = await collectContext();
+            
+            if (codeContext.contextSummary) {
+                stream.markdown(`### 📋 上下文分析\n${codeContext.contextSummary}\n`);
+            }
+            
             stream.progress('正在分析代码需求...');
             const result = await callMCPWorkflow('coding-with-ai', request.prompt);
             
@@ -177,6 +189,13 @@ function createCodingParticipant() {
 function createRefactorParticipant() {
     return vscode.chat.createChatParticipant('ai-agent.refactor', async (request, context, stream, token) => {
         try {
+            stream.progress('正在收集智能上下文...');
+            const codeContext = await collectContext();
+            
+            if (codeContext.contextSummary) {
+                stream.markdown(`### 📋 上下文分析\n${codeContext.contextSummary}\n`);
+            }
+            
             stream.progress('正在分析代码结构...');
             const result = await callMCPWorkflow('refactor', request.prompt);
             
@@ -205,6 +224,13 @@ function createRefactorParticipant() {
 function createRequirementsParticipant() {
     return vscode.chat.createChatParticipant('ai-agent.requirements', async (request, context, stream, token) => {
         try {
+            stream.progress('正在收集智能上下文...');
+            const codeContext = await collectContext();
+            
+            if (codeContext.contextSummary) {
+                stream.markdown(`### 📋 上下文分析\n${codeContext.contextSummary}\n`);
+            }
+            
             stream.progress('正在分析需求...');
             const result = await callMCPWorkflow('requirements-analysis', request.prompt);
             
@@ -233,23 +259,51 @@ function getLanguageFromContext(): string {
 
 async function collectContext(): Promise<CodeContext> {
     const activeEditor = vscode.window.activeTextEditor;
-    if (!activeEditor) {
+    
+    // 创建智能上下文收集器
+    const collector = createContextCollector({
+        includeProjectStructure: true,
+        includeGitDiff: true,
+        maxFileSize: 100 // 100KB
+    });
+    
+    try {
+        // 收集智能上下文
+        const enhancedContext = await collector.collectContext();
+        
+        // 转换为兼容格式
         return {
-            file: '',
-            language: 'javascript',
-            selection: '',
+            file: enhancedContext.activeFile,
+            language: enhancedContext.language,
+            selection: enhancedContext.selection,
+            gitDiff: enhancedContext.gitDiff,
+            projectStructure: enhancedContext.projectStructure,
+            contextSummary: collector.getContextSummary(enhancedContext),
+            relevantFiles: enhancedContext.relevantFiles,
+            estimatedTokens: enhancedContext.estimatedTokens
+        };
+    } catch (error) {
+        console.error('Smart context collection failed, falling back to basic:', error);
+        
+        // Fallback到原始实现
+        if (!activeEditor) {
+            return {
+                file: '',
+                language: 'javascript',
+                selection: '',
+                gitDiff: '',
+                projectStructure: ''
+            };
+        }
+        
+        return {
+            file: activeEditor.document.fileName,
+            language: activeEditor.document.languageId,
+            selection: activeEditor.document.getText(activeEditor.selection),
             gitDiff: '',
             projectStructure: ''
         };
     }
-    
-    return {
-        file: activeEditor.document.fileName,
-        language: activeEditor.document.languageId,
-        selection: activeEditor.document.getText(activeEditor.selection),
-        gitDiff: '',
-        projectStructure: ''
-    };
 }
 
 async function callMCPWorkflow(preset: string, prompt: string): Promise<WorkflowResult> {

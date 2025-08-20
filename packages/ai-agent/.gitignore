@@ -8,8 +8,9 @@ dist/
 *.d.ts
 !webpack.config.js
 !publish-to-marketplace.js
-!test-*.js
-!verify-*.js
+
+# Test directory - 所有测试文件都在这里，避免干扰项目语言检测
+tests/
 
 # VS Code Extension files
 *.vsix
