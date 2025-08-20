@@ -1,508 +1,236 @@
 import * as vscode from 'vscode';
-import { ContextCollector, createContextCollector } from './context/collector';
+import { Client } from '@modelcontextprotocol/sdk/client';
+import * as fs from 'fs';
+import * as path from 'path';
 
+// 版本信息显示
+function showVersionInfo() {
+    try {
+        // 读取根目录的package.json获取版本信息
+        const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+        if (workspaceRoot) {
+            const packageJsonPath = path.join(workspaceRoot, 'package.json');
+            if (fs.existsSync(packageJsonPath)) {
+                const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+                const version = packageJson.version || 'unknown';
+                const name = packageJson.name || 'ai-agent-hub';
+                
+                console.log(`🚀 AI Agent Hub Extension Started - ${name} v${version}`);
+                vscode.window.showInformationMessage(`AI Agent Hub v${version} activated successfully!`);
+            }
+        }
+    } catch (error) {
+        console.error('Failed to read version info:', error);
+        vscode.window.showInformationMessage('AI Agent Hub activated successfully!');
+    }
+}
+
+// 代码上下文接口
 interface CodeContext {
-    file?: string;
-    language?: string;
-    selection?: string;
-    gitDiff?: string;
-    projectStructure?: string;
-    // 新增：智能上下文信息
-    contextSummary?: string;
-    relevantFiles?: any[];
-    estimatedTokens?: number;
+    filePath: string;
+    language: string;
+    content: string;
+    selection?: vscode.Range;
+    gitInfo?: any;
 }
 
-interface WorkflowResult {
-    code?: string;
-    tests?: string;
-    analysis?: string;
-    steps?: any[];
-}
-
+// MCP客户端管理器
 class MCPClientManager {
-    private isConnected: boolean = false;
+    private client: Client | null = null;
+    private isConnected = false;
 
     async connect(): Promise<void> {
-        if (this.isConnected) {
-            return;
-        }
-
         try {
-            // VS Code handles MCP server connection automatically via settings.json
-            // We just need to mark as connected since VS Code manages the MCP lifecycle
-            this.isConnected = true;
-            console.log('✅ MCP Client ready - VS Code manages MCP server connection');
-        } catch (error) {
-            console.error('❌ Failed to initialize MCP client:', error);
-            this.isConnected = false;
-            throw error;
-        }
-    }
-
-    async executeWorkflow(presetName: string, context: any): Promise<WorkflowResult> {
-        if (!this.isConnected) {
-            await this.connect();
-        }
-
-        try {
-            // Use VS Code's MCP system to execute workflows
-            // This will use the MCP server configured in settings.json
-            const result = await this.callMCPTool('execute_workflow', {
-                presetName,
-                context
+            // 这里需要根据实际的MCP SDK API进行调整
+            this.client = new Client({
+                name: 'ai-agent-vscode',
+                version: '0.0.9'
             });
-
-            return this.parseToolResult(result);
+            
+            // 连接到MCP服务器
+            await this.client.connect();
+            this.isConnected = true;
+            console.log('Connected to MCP server');
         } catch (error) {
-            console.error('MCP workflow execution failed:', error);
+            console.error('Failed to connect to MCP server:', error);
+            this.isConnected = false;
+        }
+    }
+
+    async executeWorkflow(preset: string, context: CodeContext): Promise<string> {
+        if (!this.isConnected || !this.client) {
+            throw new Error('MCP client not connected');
+        }
+
+        try {
+            // 执行工作流
+            const result = await this.client.request({
+                method: 'tools/call',
+                params: {
+                    name: 'execute_workflow',
+                    arguments: {
+                        preset,
+                        context
+                    }
+                }
+            });
+            
+            return result.content || 'Workflow executed successfully';
+        } catch (error) {
+            console.error('Workflow execution failed:', error);
             throw error;
-        }
-    }
-
-    private async callMCPTool(toolName: string, args: any): Promise<any> {
-        // Simulate MCP tool call - in a real implementation, this would use VS Code's MCP API
-        // For now, return a mock response to test the extension structure
-        return {
-            content: [{
-                type: 'text',
-                text: JSON.stringify({
-                    analysis: `Mock analysis for ${toolName} with preset: ${args.presetName}`,
-                    code: `// Mock code generated for ${args.presetName}\nconsole.log('Hello from AI Agent!');`,
-                    tests: `// Mock tests for ${args.presetName}\ntest('should work', () => { expect(true).toBe(true); });`
-                })
-            }]
-        };
-    }
-
-    async listPresets(): Promise<any[]> {
-        if (!this.isConnected) {
-            await this.connect();
-        }
-
-        try {
-            const result = await this.callMCPTool('list_presets', {});
-            const parsed = this.parseToolResult(result);
-            return JSON.parse(parsed.analysis || '[]');
-        } catch (error) {
-            console.error('Failed to list presets:', error);
-            return [];
-        }
-    }
-
-    async getProjectInfo(): Promise<any> {
-        if (!this.isConnected) {
-            await this.connect();
-        }
-
-        try {
-            const result = await this.callMCPTool('get_project_info', {});
-            const parsed = this.parseToolResult(result);
-            return JSON.parse(parsed.analysis || '{}');
-        } catch (error) {
-            console.error('Failed to get project info:', error);
-            return {};
-        }
-    }
-
-    private parseToolResult(result: any): WorkflowResult {
-        if (!result.content || result.content.length === 0) {
-            return { steps: [] };
-        }
-
-        try {
-            const firstContent = result.content[0];
-            let textContent = '';
-            
-            if (firstContent.type === 'text' && firstContent.text) {
-                textContent = firstContent.text;
-            } else if (typeof firstContent === 'string') {
-                textContent = firstContent;
-            } else {
-                textContent = JSON.stringify(firstContent);
-            }
-
-            const parsed = JSON.parse(textContent);
-            
-            return {
-                code: parsed.code || '',
-                tests: parsed.tests || '',
-                analysis: parsed.result || parsed.analysis || '',
-                steps: []
-            };
-        } catch (error) {
-            const firstContent = result.content[0];
-            const fallbackText = firstContent?.text || firstContent || 'No content available';
-            
-            return {
-                analysis: typeof fallbackText === 'string' ? fallbackText : JSON.stringify(fallbackText),
-                steps: []
-            };
         }
     }
 
     disconnect(): void {
-        this.isConnected = false;
-        console.log('MCP Client disconnected');
+        if (this.client) {
+            this.client.close();
+            this.client = null;
+            this.isConnected = false;
+        }
     }
 }
 
-// Global MCP client manager
-let mcpClientManager: MCPClientManager;
+// Chat参与者基类
+abstract class BaseChatParticipant {
+    protected mcpManager: MCPClientManager;
 
-// 状态栏项
+    constructor(mcpManager: MCPClientManager) {
+        this.mcpManager = mcpManager;
+    }
+
+    abstract handleRequest(
+        request: vscode.ChatRequest,
+        context: vscode.ChatContext,
+        stream: vscode.ChatResponseStream,
+        token: vscode.CancellationToken
+    ): Promise<void>;
+
+    protected async collectContext(): Promise<CodeContext> {
+        const editor = vscode.window.activeTextEditor;
+        if (!editor) {
+            throw new Error('No active editor');
+        }
+
+        return {
+            filePath: editor.document.fileName,
+            language: editor.document.languageId,
+            content: editor.document.getText(),
+            selection: editor.selection.isEmpty ? undefined : editor.selection
+        };
+    }
+}
+
+// 编码助手
+class CodingParticipant extends BaseChatParticipant {
+    async handleRequest(
+        request: vscode.ChatRequest,
+        context: vscode.ChatContext,
+        stream: vscode.ChatResponseStream,
+        token: vscode.CancellationToken
+    ): Promise<void> {
+        try {
+            const codeContext = await this.collectContext();
+            const result = await this.mcpManager.executeWorkflow('coding-with-ai', codeContext);
+            
+            stream.markdown(result);
+        } catch (error) {
+            stream.markdown(`Error: ${error.message}`);
+        }
+    }
+}
+
+// 重构助手
+class RefactorParticipant extends BaseChatParticipant {
+    async handleRequest(
+        request: vscode.ChatRequest,
+        context: vscode.ChatContext,
+        stream: vscode.ChatResponseStream,
+        token: vscode.CancellationToken
+    ): Promise<void> {
+        try {
+            const codeContext = await this.collectContext();
+            const result = await this.mcpManager.executeWorkflow('refactor', codeContext);
+            
+            stream.markdown(result);
+        } catch (error) {
+            stream.markdown(`Error: ${error.message}`);
+        }
+    }
+}
+
+// 需求分析助手
+class RequirementsParticipant extends BaseChatParticipant {
+    async handleRequest(
+        request: vscode.ChatRequest,
+        context: vscode.ChatContext,
+        stream: vscode.ChatResponseStream,
+        token: vscode.CancellationToken
+    ): Promise<void> {
+        try {
+            const codeContext = await this.collectContext();
+            const result = await this.mcpManager.executeWorkflow('requirements-analysis', codeContext);
+            
+            stream.markdown(result);
+        } catch (error) {
+            stream.markdown(`Error: ${error.message}`);
+        }
+    }
+}
+
+// 全局变量
+let mcpManager: MCPClientManager;
 let statusBarItem: vscode.StatusBarItem;
 
-// 工作流状态管理
-interface WorkflowStatus {
-    isRunning: boolean;
-    currentStep: string;
-    progress: number;
-    totalSteps: number;
-}
-
-let workflowStatus: WorkflowStatus = {
-    isRunning: false,
-    currentStep: '',
-    progress: 0,
-    totalSteps: 0
-};
-
-// 状态管理函数
-function updateWorkflowStatus(status: Partial<WorkflowStatus>) {
-    workflowStatus = { ...workflowStatus, ...status };
-    updateStatusBar();
-}
-
-function updateStatusBar() {
-    if (!statusBarItem) return;
+// 扩展激活函数
+export async function activate(context: vscode.ExtensionContext) {
+    console.log('AI Agent Hub extension is being activated...');
     
-    if (workflowStatus.isRunning) {
-        const percentage = workflowStatus.totalSteps > 0 
-            ? Math.round((workflowStatus.progress / workflowStatus.totalSteps) * 100)
-            : 0;
-        
-        statusBarItem.text = `$(sync~spin) AI Agent: ${workflowStatus.currentStep} (${percentage}%)`;
-        statusBarItem.tooltip = `正在执行工作流: ${workflowStatus.currentStep}`;
-        statusBarItem.backgroundColor = new vscode.ThemeColor('statusBarItem.warningBackground');
-    } else {
-        statusBarItem.text = `$(check) AI Agent Ready`;
-        statusBarItem.tooltip = 'AI Agent Hub 已就绪';
-        statusBarItem.backgroundColor = undefined;
-    }
-}
-
-// Helper functions
-function createCodingParticipant() {
-    return vscode.chat.createChatParticipant('ai-agent.coding', async (request, context, stream, token) => {
-        try {
-            // 开始工作流状态
-            updateWorkflowStatus({
-                isRunning: true,
-                currentStep: '收集上下文',
-                progress: 1,
-                totalSteps: 4
-            });
-
-            stream.progress('正在收集智能上下文...');
-            const codeContext = await collectContext();
-            
-            if (codeContext.contextSummary) {
-                stream.markdown(`### 📋 上下文分析\n${codeContext.contextSummary}\n`);
-            }
-            
-            // 更新状态
-            updateWorkflowStatus({
-                currentStep: '分析需求',
-                progress: 2
-            });
-            
-            stream.progress('正在分析代码需求...');
-            const result = await callMCPWorkflow('coding-with-ai', request.prompt);
-            
-            // 更新状态
-            updateWorkflowStatus({
-                currentStep: '生成代码',
-                progress: 3
-            });
-            
-            if (result.analysis) {
-                stream.markdown(`## 需求分析\n${result.analysis}\n`);
-            }
-            
-            if (result.code) {
-                stream.markdown(`## 生成的代码\n\`\`\`${getLanguageFromContext()}\n${result.code}\n\`\`\`\n`);
-            }
-            
-            if (result.tests) {
-                stream.markdown(`## 测试代码\n\`\`\`${getLanguageFromContext()}\n${result.tests}\n\`\`\``);
-            }
-            
-            // 完成状态
-            updateWorkflowStatus({
-                currentStep: '完成',
-                progress: 4,
-                isRunning: false
-            });
-            
-            // 2秒后重置状态
-            setTimeout(() => {
-                updateWorkflowStatus({
-                    isRunning: false,
-                    currentStep: '',
-                    progress: 0
-                });
-            }, 2000);
-            
-            if (!result.code && !result.analysis) {
-                stream.markdown('❌ 抱歉，无法生成代码。请检查您的请求或稍后重试。');
-            }
-        } catch (error) {
-            // 错误时重置状态
-            updateWorkflowStatus({
-                isRunning: false,
-                currentStep: '错误',
-                progress: 0
-            });
-            
-            stream.markdown(`❌ 处理请求时发生错误: ${error instanceof Error ? error.message : '未知错误'}`);
-        }
-        return { metadata: { command: 'coding' } };
-    });
-}
-
-function createRefactorParticipant() {
-    return vscode.chat.createChatParticipant('ai-agent.refactor', async (request, context, stream, token) => {
-        try {
-            stream.progress('正在收集智能上下文...');
-            const codeContext = await collectContext();
-            
-            if (codeContext.contextSummary) {
-                stream.markdown(`### 📋 上下文分析\n${codeContext.contextSummary}\n`);
-            }
-            
-            stream.progress('正在分析代码结构...');
-            const result = await callMCPWorkflow('refactor', request.prompt);
-            
-            if (result.analysis) {
-                stream.markdown(`## 重构分析\n${result.analysis}\n`);
-            }
-            
-            if (result.code) {
-                stream.markdown(`## 重构后的代码\n\`\`\`${getLanguageFromContext()}\n${result.code}\n\`\`\`\n`);
-            }
-            
-            if (result.tests) {
-                stream.markdown(`## 验证测试\n\`\`\`${getLanguageFromContext()}\n${result.tests}\n\`\`\``);
-            }
-            
-            if (!result.code && !result.analysis) {
-                stream.markdown('❌ 抱歉，无法完成重构。请确保选择了有效的代码片段。');
-            }
-        } catch (error) {
-            stream.markdown(`❌ 重构过程中发生错误: ${error instanceof Error ? error.message : '未知错误'}`);
-        }
-        return { metadata: { command: 'refactor' } };
-    });
-}
-
-function createRequirementsParticipant() {
-    return vscode.chat.createChatParticipant('ai-agent.requirements', async (request, context, stream, token) => {
-        try {
-            stream.progress('正在收集智能上下文...');
-            const codeContext = await collectContext();
-            
-            if (codeContext.contextSummary) {
-                stream.markdown(`### 📋 上下文分析\n${codeContext.contextSummary}\n`);
-            }
-            
-            stream.progress('正在分析需求...');
-            const result = await callMCPWorkflow('requirements-analysis', request.prompt);
-            
-            if (result.analysis) {
-                stream.markdown(`## 需求分析\n${result.analysis}\n`);
-            }
-            
-            if (result.code) {
-                stream.markdown(`## 原型代码\n\`\`\`${getLanguageFromContext()}\n${result.code}\n\`\`\``);
-            }
-            
-            if (!result.analysis && !result.code) {
-                stream.markdown('❌ 抱歉，无法分析需求。请提供更详细的需求描述。');
-            }
-        } catch (error) {
-            stream.markdown(`❌ 需求分析过程中发生错误: ${error instanceof Error ? error.message : '未知错误'}`);
-        }
-        return { metadata: { command: 'requirements' } };
-    });
-}
-
-function getLanguageFromContext(): string {
-    const activeEditor = vscode.window.activeTextEditor;
-    return activeEditor?.document.languageId || 'javascript';
-}
-
-async function collectContext(): Promise<CodeContext> {
-    const activeEditor = vscode.window.activeTextEditor;
+    // 显示版本信息
+    showVersionInfo();
     
-    // 创建智能上下文收集器
-    const collector = createContextCollector({
-        includeProjectStructure: true,
-        includeGitDiff: true,
-        maxFileSize: 100 // 100KB
-    });
+    // 初始化MCP管理器
+    mcpManager = new MCPClientManager();
     
-    try {
-        // 收集智能上下文
-        const enhancedContext = await collector.collectContext();
-        
-        // 转换为兼容格式
-        return {
-            file: enhancedContext.activeFile,
-            language: enhancedContext.language,
-            selection: enhancedContext.selection,
-            gitDiff: enhancedContext.gitDiff,
-            projectStructure: enhancedContext.projectStructure,
-            contextSummary: collector.getContextSummary(enhancedContext),
-            relevantFiles: enhancedContext.relevantFiles,
-            estimatedTokens: enhancedContext.estimatedTokens
-        };
-    } catch (error) {
-        console.error('Smart context collection failed, falling back to basic:', error);
-        
-        // Fallback到原始实现
-        if (!activeEditor) {
-            return {
-                file: '',
-                language: 'javascript',
-                selection: '',
-                gitDiff: '',
-                projectStructure: ''
-            };
-        }
-        
-        return {
-            file: activeEditor.document.fileName,
-            language: activeEditor.document.languageId,
-            selection: activeEditor.document.getText(activeEditor.selection),
-            gitDiff: '',
-            projectStructure: ''
-        };
-    }
-}
-
-async function callMCPWorkflow(preset: string, prompt: string): Promise<WorkflowResult> {
-    try {
-        if (!mcpClientManager) {
-            throw new Error('MCP client manager not initialized');
-        }
-
-        const context = await collectContext();
-        
-        const workflowContext = {
-            ...context,
-            prompt
-        };
-
-        const result = await mcpClientManager.executeWorkflow(preset, workflowContext);
-        
-        return result;
-    } catch (error) {
-        console.error('MCP workflow error:', error);
-        
-        let errorMessage = 'AI Agent workflow failed';
-        
-        if (error instanceof Error) {
-            if (error.message.includes('MCP client not available')) {
-                errorMessage = 'Cannot connect to AI Agent MCP server. Please check VS Code MCP configuration.';
-                vscode.window.showErrorMessage(errorMessage, 'Check Settings', 'View Logs').then(selection => {
-                    if (selection === 'Check Settings') {
-                        vscode.commands.executeCommand('workbench.action.openSettings', 'mcp.servers');
-                    } else if (selection === 'View Logs') {
-                        vscode.commands.executeCommand('workbench.action.showLogs');
-                    }
-                });
-            } else {
-                errorMessage = `AI Agent workflow failed: ${error.message}`;
-                vscode.window.showErrorMessage(errorMessage, 'View Logs').then(selection => {
-                    if (selection === 'View Logs') {
-                        vscode.commands.executeCommand('workbench.action.showLogs');
-                    }
-                });
-            }
-        }
-        
-        return { 
-            analysis: errorMessage,
-            steps: [] 
-        };
-    }
-}
-
-export function activate(context: vscode.ExtensionContext) {
-    console.log('🚀 AI Agent Hub extension is now active!');
-
-    // 初始化状态栏
-    statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
-    statusBarItem.command = 'ai-agent.showStatus';
-    context.subscriptions.push(statusBarItem);
-    
-    // 初始化状态
-    updateStatusBar();
+    // 创建状态栏项
+    statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
+    statusBarItem.text = '$(robot) AI Agent';
+    statusBarItem.tooltip = 'AI Agent Hub Status';
     statusBarItem.show();
-
-    // Initialize MCP client manager
-    mcpClientManager = new MCPClientManager();
-
-    // Register Chat Participants
-    const codingParticipant = createCodingParticipant();
-    const refactorParticipant = createRefactorParticipant();
-    const requirementsParticipant = createRequirementsParticipant();
-
-    // 注册状态查看命令
-    const showStatusCommand = vscode.commands.registerCommand('ai-agent.showStatus', () => {
-        const status = workflowStatus.isRunning 
-            ? `正在执行: ${workflowStatus.currentStep} (${workflowStatus.progress}/${workflowStatus.totalSteps})`
-            : 'AI Agent Hub 就绪';
+    
+    try {
+        // 连接到MCP服务器
+        await mcpManager.connect();
+        statusBarItem.text = '$(robot) AI Agent ✓';
+        statusBarItem.tooltip = 'AI Agent Hub Connected';
         
-        vscode.window.showInformationMessage(`AI Agent Hub 状态: ${status}`, 'MCP 连接状态').then(selection => {
-            if (selection === 'MCP 连接状态') {
-                const connectionStatus = mcpClientManager ? '已连接' : '未连接';
-                vscode.window.showInformationMessage(`MCP 服务器: ${connectionStatus}`);
-            }
-        });
-    });
-    context.subscriptions.push(showStatusCommand);
-
-    // Register MCP connection command
-    const connectCommand = vscode.commands.registerCommand('ai-agent.connectMCP', async () => {
-        try {
-            await mcpClientManager.connect();
-            vscode.window.showInformationMessage('✅ Connected to AI Agent MCP server');
-        } catch (error) {
-            vscode.window.showErrorMessage(`❌ Failed to connect to MCP server: ${error}`);
-        }
-    });
-    context.subscriptions.push(connectCommand);
-
-    // Register participants
-    context.subscriptions.push(codingParticipant);
-    context.subscriptions.push(refactorParticipant);
-    context.subscriptions.push(requirementsParticipant);
-
-    // Try to connect to MCP server on startup
-    setTimeout(async () => {
-        try {
-            await mcpClientManager.connect();
-            console.log('✅ Auto-connected to AI Agent MCP server');
-        } catch (error) {
-            console.log('⚠️ Auto-connection to MCP server failed, will retry on first use');
-        }
-    }, 2000);
+        // 注册Chat参与者
+        const codingParticipant = vscode.chat.createChatParticipant('ai-agent.coding', new CodingParticipant(mcpManager).handleRequest.bind(new CodingParticipant(mcpManager)));
+        const refactorParticipant = vscode.chat.createChatParticipant('ai-agent.refactor', new RefactorParticipant(mcpManager).handleRequest.bind(new RefactorParticipant(mcpManager)));
+        const requirementsParticipant = vscode.chat.createChatParticipant('ai-agent.requirements', new RequirementsParticipant(mcpManager).handleRequest.bind(new RequirementsParticipant(mcpManager)));
+        
+        // 添加到上下文
+        context.subscriptions.push(codingParticipant, refactorParticipant, requirementsParticipant, statusBarItem);
+        
+        console.log('AI Agent Hub extension activated successfully');
+    } catch (error) {
+        console.error('Failed to activate AI Agent Hub extension:', error);
+        statusBarItem.text = '$(robot) AI Agent ✗';
+        statusBarItem.tooltip = `AI Agent Hub Error: ${error.message}`;
+    }
 }
 
+// 扩展停用函数
 export function deactivate() {
-    if (mcpClientManager) {
-        mcpClientManager.disconnect();
+    console.log('AI Agent Hub extension is being deactivated...');
+    
+    if (mcpManager) {
+        mcpManager.disconnect();
     }
+    
+    if (statusBarItem) {
+        statusBarItem.dispose();
+    }
+    
+    console.log('AI Agent Hub extension deactivated');
 }

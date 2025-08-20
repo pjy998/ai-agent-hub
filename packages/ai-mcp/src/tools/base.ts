@@ -1,211 +1,238 @@
 /**
- * 基础工具接口定义
- * 
- * 定义了所有AI Agent工具必须实现的接口
+ * 基础工具类 - 所有MCP工具的基类
+ * 提供通用的安全验证和错误处理功能
  */
 
-export interface ToolExecutionResult {
+import * as path from 'path';
+import * as fs from 'fs';
+
+// 工具执行结果接口
+export interface ToolResult {
     success: boolean;
-    result?: string;
+    data?: any;
     error?: string;
-    metadata?: Record<string, any>;
+    metadata?: any;
 }
 
-export interface ToolConfig {
-    name: string;
-    description: string;
-    version: string;
-    author?: string;
-    // 工具参数schema
-    parameters: ToolParameterSchema;
-    // 安全配置
-    security?: ToolSecurityConfig;
+// 工具参数接口
+export interface ToolParams {
+    [key: string]: any;
 }
 
-export interface ToolParameterSchema {
-    type: 'object';
-    properties: Record<string, {
-        type: string;
-        description: string;
-        required?: boolean;
-        default?: any;
-        enum?: any[];
-    }>;
-    required?: string[];
-}
-
-export interface ToolSecurityConfig {
-    // 允许的文件扩展名
-    allowedExtensions?: string[];
-    // 禁止的文件扩展名
-    forbiddenExtensions?: string[];
-    // 允许的目录（相对于workspace root）
-    allowedDirectories?: string[];
-    // 禁止的目录
-    forbiddenDirectories?: string[];
-    // 允许的shell命令模式
-    allowedCommands?: RegExp[];
-    // 禁止的shell命令模式
-    forbiddenCommands?: RegExp[];
-    // 最大文件大小 (bytes)
-    maxFileSize?: number;
-    // 是否允许执行shell命令
-    allowShellExecution?: boolean;
-    // 是否允许网络访问
-    allowNetworkAccess?: boolean;
+// 工具执行上下文
+export interface ToolContext {
+    userId?: string;
+    sessionId?: string;
+    timestamp?: string;
+    workspaceRoot: string;
 }
 
 /**
- * 抽象基础工具类
- * 
- * 所有具体工具都应该继承此类
+ * 基础工具抽象类
  */
 export abstract class BaseTool {
     protected workspaceRoot: string;
-    protected config: ToolConfig;
+    protected toolName: string;
+    protected description: string;
 
-    constructor(workspaceRoot: string, config: ToolConfig) {
+    constructor(workspaceRoot: string, toolName: string, description: string) {
         this.workspaceRoot = workspaceRoot;
-        this.config = config;
-    }
-
-    /**
-     * 获取工具配置信息
-     */
-    getConfig(): ToolConfig {
-        return this.config;
+        this.toolName = toolName;
+        this.description = description;
     }
 
     /**
      * 获取工具名称
      */
     getName(): string {
-        return this.config.name;
+        return this.toolName;
     }
 
     /**
-     * 验证工具参数
+     * 获取工具描述
      */
-    protected validateParameters(params: any): boolean {
-        const schema = this.config.parameters;
-        
-        // 检查必需参数
-        if (schema.required) {
-            for (const required of schema.required) {
-                if (!(required in params)) {
-                    throw new Error(`Missing required parameter: ${required}`);
-                }
-            }
-        }
-
-        // 检查参数类型（简化版）
-        for (const [key, value] of Object.entries(params)) {
-            if (key in schema.properties) {
-                const paramSchema = schema.properties[key];
-                if (paramSchema.enum && !paramSchema.enum.includes(value)) {
-                    throw new Error(`Invalid value for ${key}: ${value}. Expected one of: ${paramSchema.enum.join(', ')}`);
-                }
-            }
-        }
-
-        return true;
+    getDescription(): string {
+        return this.description;
     }
 
     /**
-     * 安全检查：验证文件路径
+     * 获取工具参数模式
      */
-    protected validateFilePath(filePath: string): boolean {
-        const security = this.config.security;
-        if (!security) return true;
-
-        const path = require('path');
-        
-        // 额外的路径遍历检查
-        if (filePath.includes('..') || filePath.includes('~')) {
-            throw new Error('Path traversal patterns are not allowed');
-        }
-        
-        const normalizedPath = path.resolve(this.workspaceRoot, filePath);
-        
-        // 确保路径在workspace内
-        if (!normalizedPath.startsWith(this.workspaceRoot)) {
-            throw new Error('File path must be within workspace');
-        }
-
-        // 检查文件扩展名
-        const ext = path.extname(filePath).toLowerCase();
-        if (security.forbiddenExtensions?.includes(ext)) {
-            throw new Error(`File extension ${ext} is not allowed`);
-        }
-        
-        if (security.allowedExtensions && !security.allowedExtensions.includes(ext)) {
-            throw new Error(`File extension ${ext} is not in allowed list`);
-        }
-
-        // 检查目录路径
-        const relativePath = path.relative(this.workspaceRoot, normalizedPath);
-        const dir = path.dirname(relativePath);
-        
-        if (security.forbiddenDirectories?.some(forbidden => dir.startsWith(forbidden))) {
-            throw new Error(`Directory ${dir} is forbidden`);
-        }
-        
-        if (security.allowedDirectories && !security.allowedDirectories.some(allowed => dir.startsWith(allowed))) {
-            throw new Error(`Directory ${dir} is not in allowed list`);
-        }
-
-        return true;
-    }
-
-    /**
-     * 安全检查：验证shell命令
-     */
-    protected validateShellCommand(command: string): boolean {
-        const security = this.config.security;
-        if (!security) return true;
-
-        if (!security.allowShellExecution) {
-            throw new Error('Shell command execution is disabled for this tool');
-        }
-
-        // 检查禁止的命令
-        if (security.forbiddenCommands?.some(pattern => pattern.test(command))) {
-            throw new Error(`Command pattern is forbidden: ${command}`);
-        }
-
-        // 检查允许的命令
-        if (security.allowedCommands && !security.allowedCommands.some(pattern => pattern.test(command))) {
-            throw new Error(`Command pattern is not allowed: ${command}`);
-        }
-
-        return true;
-    }
+    abstract getSchema(): any;
 
     /**
      * 执行工具
-     * 子类必须实现此方法
      */
-    abstract execute(params: any): Promise<ToolExecutionResult>;
-}
+    abstract execute(params: ToolParams, context?: ToolContext): Promise<ToolResult>;
 
-/**
- * 工具执行上下文
- */
-export interface ToolExecutionContext {
-    workspaceRoot: string;
-    currentFile?: string;
-    userIntent?: string;
-    sessionId?: string;
-    timestamp: number;
-}
+    /**
+     * 验证文件路径安全性
+     * 防止路径遍历攻击
+     */
+    protected validateFilePath(filePath: string): boolean {
+        try {
+            // 解析绝对路径
+            const absolutePath = path.resolve(filePath);
+            const workspaceAbsolutePath = path.resolve(this.workspaceRoot);
 
-/**
- * 工具执行统计
- */
-export interface ToolExecutionStats {
-    toolName: string;
-    executionTime: number;
-    success: boolean;
-    errorMessage?: string;
-    timestamp: number;
+            // 检查路径是否在工作区内
+            const relativePath = path.relative(workspaceAbsolutePath, absolutePath);
+            
+            // 如果相对路径以..开头，说明试图访问工作区外的文件
+            if (relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
+                console.warn(`🚨 Security: Attempted to access file outside workspace: ${filePath}`);
+                return false;
+            }
+
+            // 检查危险路径模式
+            const dangerousPatterns = [
+                /\.\.\//, // 路径遍历
+                /\\\.\.\\/, // Windows路径遍历
+                /\/etc\//, // Unix系统文件
+                /\/proc\//, // Unix进程文件
+                /\/sys\//, // Unix系统文件
+                /C:\\Windows\\/, // Windows系统文件
+                /C:\\Program Files\\/, // Windows程序文件
+            ];
+
+            for (const pattern of dangerousPatterns) {
+                if (pattern.test(absolutePath)) {
+                    console.warn(`🚨 Security: Dangerous path pattern detected: ${filePath}`);
+                    return false;
+                }
+            }
+
+            return true;
+        } catch (error) {
+            console.error(`❌ Path validation error for ${filePath}:`, error);
+            return false;
+        }
+    }
+
+    /**
+     * 验证命令安全性
+     * 防止危险命令执行
+     */
+    protected validateCommand(command: string): boolean {
+        try {
+            // 危险命令黑名单
+            const dangerousCommands = [
+                // 系统管理命令
+                'rm', 'del', 'format', 'fdisk', 'mkfs',
+                // 网络命令
+                'wget', 'curl', 'nc', 'netcat', 'telnet',
+                // 进程管理
+                'kill', 'killall', 'pkill', 'taskkill',
+                // 权限提升
+                'sudo', 'su', 'runas', 'chmod', 'chown',
+                // 系统服务
+                'systemctl', 'service', 'sc.exe',
+                // 注册表操作
+                'reg', 'regedit',
+                // PowerShell危险命令
+                'Invoke-Expression', 'iex', 'Invoke-Command', 'icm',
+                // 脚本下载执行
+                'powershell', 'cmd.exe', 'bash', 'sh'
+            ];
+
+            const lowerCommand = command.toLowerCase();
+            
+            for (const dangerous of dangerousCommands) {
+                if (lowerCommand.includes(dangerous.toLowerCase())) {
+                    console.warn(`🚨 Security: Dangerous command detected: ${command}`);
+                    return false;
+                }
+            }
+
+            // 检查危险字符
+            const dangerousChars = ['|', '&', ';', '`', '$', '>', '<', '||', '&&'];
+            for (const char of dangerousChars) {
+                if (command.includes(char)) {
+                    console.warn(`🚨 Security: Dangerous character '${char}' in command: ${command}`);
+                    return false;
+                }
+            }
+
+            return true;
+        } catch (error) {
+            console.error(`❌ Command validation error for ${command}:`, error);
+            return false;
+        }
+    }
+
+    /**
+     * 验证参数
+     */
+    protected validateParams(params: ToolParams): boolean {
+        try {
+            if (!params || typeof params !== 'object') {
+                return false;
+            }
+
+            // 检查参数大小限制
+            const paramsString = JSON.stringify(params);
+            if (paramsString.length > 10000) { // 10KB限制
+                console.warn(`🚨 Security: Parameters too large: ${paramsString.length} bytes`);
+                return false;
+            }
+
+            return true;
+        } catch (error) {
+            console.error('❌ Parameter validation error:', error);
+            return false;
+        }
+    }
+
+    /**
+     * 创建安全的执行上下文
+     */
+    protected createContext(context?: ToolContext): ToolContext {
+        return {
+            userId: context?.userId || 'anonymous',
+            sessionId: context?.sessionId || `session_${Date.now()}`,
+            timestamp: new Date().toISOString(),
+            workspaceRoot: this.workspaceRoot,
+            ...context
+        };
+    }
+
+    /**
+     * 记录工具执行日志
+     */
+    protected logExecution(params: ToolParams, result: ToolResult, context?: ToolContext): void {
+        const logEntry = {
+            tool: this.toolName,
+            timestamp: new Date().toISOString(),
+            params: this.sanitizeForLog(params),
+            success: result.success,
+            error: result.error,
+            context: context ? {
+                userId: context.userId,
+                sessionId: context.sessionId
+            } : undefined
+        };
+
+        if (result.success) {
+            console.log(`✅ Tool executed: ${this.toolName}`, logEntry);
+        } else {
+            console.error(`❌ Tool failed: ${this.toolName}`, logEntry);
+        }
+    }
+
+    /**
+     * 清理敏感信息用于日志记录
+     */
+    private sanitizeForLog(params: any): any {
+        const sanitized = { ...params };
+        
+        // 移除敏感字段
+        const sensitiveFields = ['password', 'token', 'key', 'secret', 'auth'];
+        for (const field of sensitiveFields) {
+            if (sanitized[field]) {
+                sanitized[field] = '[REDACTED]';
+            }
+        }
+
+        return sanitized;
+    }
 }

@@ -434,3 +434,212 @@ interface ErrorContext {
   stackTrace: string;
 }
 ```
+
+## 🔧 MCP工具系统规格 (新增)
+
+### 1. 工具基础架构
+
+#### 1.1 BaseTool 抽象类
+**功能**: 所有MCP工具的基类，提供统一的接口和安全验证
+
+**接口定义**:
+```typescript
+abstract class BaseTool {
+  protected workspaceRoot: string;
+  protected toolName: string;
+  protected description: string;
+
+  abstract getSchema(): any;
+  abstract execute(params: ToolParams, context?: ToolContext): Promise<ToolResult>;
+  
+  protected validateParams(params: ToolParams): boolean;
+  protected validateFilePath(filePath: string): boolean;
+  protected validateCommand(command: string): boolean;
+  protected logExecution(params: ToolParams, result: ToolResult, context: ToolContext): void;
+}
+```
+
+#### 1.2 工具结果接口
+```typescript
+interface ToolResult {
+  success: boolean;
+  data?: any;
+  error?: string;
+  metadata?: {
+    timestamp: string;
+    execution_time_ms?: number;
+    [key: string]: any;
+  };
+}
+
+interface ToolParams {
+  [key: string]: any;
+}
+
+interface ToolContext {
+  user_id?: string;
+  session_id?: string;
+  workspace_root: string;
+  timestamp: string;
+}
+```
+
+### 2. 核心工具实现
+
+#### 2.1 文件操作工具
+
+**WriteFileTool**:
+- 支持安全的文件写入
+- 自动创建父目录
+- 路径安全验证
+- 编码格式支持
+
+**ReadFileTool**:
+- 支持大文件读取限制
+- 文件大小检查
+- 编码格式检测
+- 二进制文件过滤
+
+**SearchFilesTool**:
+- 正则表达式搜索
+- 文件名和内容搜索
+- 文件类型过滤
+- 结果数量限制
+
+#### 2.2 命令执行工具
+
+**RunShellTool**:
+- 命令白名单验证
+- 危险命令黑名单
+- 执行超时控制
+- 跨平台支持
+
+**GitTool**:
+- Git操作安全模式
+- 常用命令支持
+- 分支保护机制
+- 操作日志记录
+
+### 3. 工具管理器
+
+#### 3.1 ToolManager 类
+**功能**: 统一管理所有工具的注册、执行和监控
+
+```typescript
+class ToolManager {
+  private tools: Map<string, BaseTool>;
+  private config: ToolConfig;
+  private stats: ToolStats;
+  
+  registerTool(tool: BaseTool): void;
+  getTool(name: string): BaseTool | undefined;
+  getAvailableTools(): string[];
+  executeTool(name: string, params: ToolParams, context?: ToolContext): Promise<ToolResult>;
+  updateStats(toolName: string, result: ToolResult, executionTime: number): void;
+  getStats(): ToolStats;
+}
+```
+
+#### 3.2 配置管理
+```typescript
+interface ToolConfig {
+  enabled_tools: string[];
+  disabled_tools: string[];
+  security: {
+    workspace_restriction: boolean;
+    command_whitelist: string[];
+    max_file_size_mb: number;
+    max_execution_time_ms: number;
+  };
+  rate_limiting: {
+    max_requests_per_minute: number;
+    max_concurrent_executions: number;
+  };
+}
+```
+
+### 4. 安全验证规格
+
+#### 4.1 路径安全验证
+- 防止路径遍历攻击 (../, ../../)
+- 工作区边界检查
+- 绝对路径限制
+- 特殊字符过滤
+
+#### 4.2 命令安全验证
+- 危险命令黑名单 (rm, del, format, shutdown等)
+- 命令白名单机制
+- 重定向和管道限制
+- 权限提升防护
+
+#### 4.3 数据安全处理
+- 敏感信息过滤
+- 日志数据清理
+- 错误信息脱敏
+- 执行结果限制
+
+### 5. MCP服务器规格
+
+#### 5.1 HTTP API接口
+```typescript
+// 工具执行接口
+POST /execute
+{
+  "tool": "write_file",
+  "params": {
+    "file_path": "src/test.ts",
+    "content": "console.log('Hello World');"
+  }
+}
+
+// 工具列表接口
+GET /tools
+
+// 服务器状态接口
+GET /status
+
+// 版本信息接口
+GET /version
+```
+
+#### 5.2 CLI命令支持
+```bash
+# 启动服务器
+npx ai-mcp start --port 3000
+
+# 检查状态
+npx ai-mcp status
+
+# 显示版本
+npx ai-mcp version
+
+# 执行工具
+npx ai-mcp exec write_file --file="test.txt" --content="Hello"
+```
+
+### 6. 配置和工具函数
+
+#### 6.1 配置管理器
+```typescript
+class ConfigManager {
+  private config: McpConfig;
+  
+  loadConfig(): McpConfig;
+  updateConfig(updates: Partial<McpConfig>): void;
+  saveConfig(): void;
+  resetToDefault(): void;
+}
+```
+
+#### 6.2 实用工具函数
+```typescript
+class Utils {
+  static validateFilePath(filePath: string, workspaceRoot: string): boolean;
+  static validateCommand(command: string, whitelist: string[]): boolean;
+  static formatFileSize(bytes: number): string;
+  static formatExecutionTime(milliseconds: number): string;
+  static sanitizeForLogging(data: any): any;
+  static generateId(): string;
+  static retry<T>(fn: () => Promise<T>, maxAttempts: number): Promise<T>;
+}
+```

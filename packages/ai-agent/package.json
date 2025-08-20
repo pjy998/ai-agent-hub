@@ -1,21 +1,13 @@
 {
   "name": "ai-agent-vscode",
   "displayName": "AI Agent Hub",
-  "description": "VS Code extension for AI-driven coding workflows with MCP integration",
+  "description": "AI Agent Hub VS Code Extension",
   "version": "0.0.9",
-  "publisher": "jieky",
-  "icon": "icon.png",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/pjy998/ai-agent-hub.git"
-  },
   "engines": {
-    "vscode": "^1.80.0"
+    "vscode": "^1.74.0"
   },
   "categories": [
-    "Other",
-    "Machine Learning",
-    "Snippets"
+    "Other"
   ],
   "activationEvents": [
     "onStartupFinished"
@@ -26,112 +18,29 @@
       {
         "id": "ai-agent.coding",
         "name": "coding",
-        "description": "AI coding assistant powered by AI Agent Hub",
-        "isSticky": true
+        "description": "AI coding assistant"
       },
       {
         "id": "ai-agent.refactor",
         "name": "refactor",
-        "description": "Code refactoring assistant",
-        "isSticky": true
+        "description": "Code refactoring assistant"
       },
       {
         "id": "ai-agent.requirements",
         "name": "requirements",
-        "description": "Requirements analysis assistant",
-        "isSticky": true
+        "description": "Requirements analysis assistant"
       }
-    ],
-    "commands": [
-      {
-        "command": "ai-agent.triggerCoding",
-        "title": "AI Agent: Trigger Coding Workflow"
-      },
-      {
-        "command": "ai-agent.triggerRefactor",
-        "title": "AI Agent: Trigger Refactor Workflow"
-      },
-      {
-        "command": "ai-agent.showReplay",
-        "title": "AI Agent: Show Prompt Replay"
-      },
-      {
-        "command": "ai-agent.openDebugPanel",
-        "title": "AI Agent: Open Debug Panel"
-      },
-      {
-        "command": "ai-agent.connectMCP",
-        "title": "AI Agent: Connect to MCP Server"
-      }
-    ],
-    "menus": {
-      "editor/context": [
-        {
-          "command": "ai-agent.triggerRefactor",
-          "when": "editorHasSelection",
-          "group": "ai-agent"
-        }
-      ]
-    },
-    "configuration": {
-      "title": "AI Agent Hub",
-      "properties": {
-        "ai-agent.mcpCommand": {
-          "type": "string",
-          "default": "ai-agent-mcp",
-          "description": "Command to start AI Agent MCP server"
-        },
-        "ai-agent.enableAutoTrigger": {
-          "type": "boolean",
-          "default": false,
-          "description": "Enable automatic workflow triggers on file changes"
-        },
-        "ai-agent.defaultPreset": {
-          "type": "string",
-          "default": "coding-with-ai",
-          "description": "Default preset for AI Agent workflows",
-          "enum": [
-            "coding-with-ai",
-            "refactor-code",
-            "analyze-requirements"
-          ]
-        },
-        "ai-agent.timeout": {
-          "type": "number",
-          "default": 60000,
-          "description": "Request timeout in milliseconds",
-          "minimum": 5000,
-          "maximum": 300000
-        },
-        "ai-agent.enableDebugMode": {
-          "type": "boolean",
-          "default": false,
-          "description": "Enable debug mode for detailed logging"
-        }
-      }
-    }
+    ]
   },
   "scripts": {
-    "build": "webpack --mode production",
-    "dev": "webpack --mode development --watch",
     "compile": "tsc -p ./",
-    "pretest": "npm run build && npm run lint",
-    "lint": "eslint src --ext ts",
-    "test": "node ./out/test/runTest.js",
-    "package": "webpack --mode production && vsce package"
-  },
-  "devDependencies": {
-    "@types/node": "18.x",
-    "@types/vscode": "^1.80.0",
-    "@typescript-eslint/eslint-plugin": "^6.4.1",
-    "@typescript-eslint/parser": "^6.4.1",
-    "eslint": "^8.47.0",
-    "ts-loader": "^9.5.2",
-    "typescript": "^5.1.6",
-    "webpack": "^5.101.3",
-    "webpack-cli": "^6.0.1"
+    "watch": "tsc -watch -p ./"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.17.3"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.74.0",
+    "typescript": "^4.9.0"
   }
 }

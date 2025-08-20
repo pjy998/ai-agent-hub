@@ -1,0 +1,71 @@
+{
+  "server": {
+    "name": "AI Agent Hub MCP Server",
+    "version": "0.0.9",
+    "port": 3000,
+    "host": "localhost",
+    "timeout": 30000
+  },
+  "tools": {
+    "enabled": ["write_file", "read_file", "search_files", "run_shell", "git"],
+    "disabled": [],
+    "security": {
+      "workspace_restriction": true,
+      "command_whitelist": ["npm", "yarn", "git", "node", "python", "ls", "dir", "cat", "type"],
+      "max_file_size_mb": 10,
+      "max_execution_time_ms": 30000
+    }
+  },
+  "ai": {
+    "defaultProvider": "local",
+    "fallbackProviders": ["local"],
+    "maxRetries": 3,
+    "retryDelay": 1000,
+    "requestTimeout": 30000,
+    "enableFallback": true,
+    "enableStats": true,
+    "providers": {
+      "local": {
+        "provider": "local",
+        "model": "mock-gpt-4",
+        "temperature": 0.7,
+        "maxTokens": 2000
+      },
+      "openai": {
+        "provider": "openai",
+        "model": "gpt-4o-mini",
+        "apiKey": "your-openai-api-key-here",
+        "temperature": 0.7,
+        "maxTokens": 2000,
+        "timeout": 30000
+      },
+      "anthropic": {
+        "provider": "anthropic",
+        "model": "claude-3-5-haiku-20241022",
+        "apiKey": "your-anthropic-api-key-here",
+        "temperature": 0.7,
+        "maxTokens": 2000,
+        "timeout": 30000
+      },
+      "azure_openai": {
+        "provider": "azure_openai",
+        "model": "gpt-4o",
+        "apiKey": "your-azure-openai-api-key-here",
+        "baseUrl": "https://your-resource.openai.azure.com/",
+        "temperature": 0.7,
+        "maxTokens": 2000,
+        "timeout": 30000
+      }
+    }
+  },
+  "logging": {
+    "level": "info",
+    "file": "mcp-server.log",
+    "console": true
+  },
+  "presets": {
+    "directory": "./agents/presets",
+    "auto_load": true,
+    "cache_enabled": true
+  }
+}
