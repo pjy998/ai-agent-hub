@@ -16,6 +16,7 @@ const { logger } = require('./utils/logger.js');
 // 导入新的Tools框架
 import { createToolManager, validateWorkspaceRoot, executeToolSafely } from './src/tools/index.js';
 import { ToolManager } from './src/tools/manager.js';
+import { AIModelManager, createDefaultAIManager } from './src/ai-model.js';
 
 interface PresetConfig {
     name: string;
@@ -35,6 +36,7 @@ class AIAgentMCPServer {
     private server: Server;
     private presets: Map<string, PresetConfig> = new Map();
     private toolManager: ToolManager;
+    private aiManager: AIModelManager;
     private workspaceRoot: string;
 
     constructor() {
@@ -49,6 +51,9 @@ class AIAgentMCPServer {
 
         // 初始化工具管理器
         this.toolManager = createToolManager(this.workspaceRoot);
+
+        // 初始化AI模型管理器
+        this.aiManager = createDefaultAIManager();
 
         this.server = new Server(
             {
@@ -365,34 +370,359 @@ class AIAgentMCPServer {
     }
 
     private async executeStep(step: PresetStep, prompt: string, context: any): Promise<string> {
-        // 现在我们有真实的工具，但AI模型集成还在开发中
-        // 暂时使用增强的mock响应，展示工具使用潜力
-        
         logger.mcpDebug(`🤖 Executing step: ${step.name} with agent: ${step.agent}`);
         
         try {
-            switch (step.agent) {
-                case 'coder':
-                    // 模拟使用文件写入工具
-                    const fileName = context.file ? path.basename(context.file) : 'generated.js';
-                    const codeContent = this.generateMockCode(prompt, context);
-                    
-                    return `${codeContent}\n\n// 💡 提示: 一旦AI模型集成完成，这将是真正由AI生成的代码\n// 🔧 可使用工具: ${this.toolManager.listToolNames().join(', ')}`;
+            // 构建针对不同代理的系统提示
+            const systemPrompt = this.buildSystemPrompt(step.agent, context);
+            
+            // 构建增强的用户提示
+            const enhancedPrompt = this.buildEnhancedPrompt(step, prompt, context);
+            
+            // 尝试使用真实AI模型
+            try {
+                const aiResponse = await this.aiManager.callModel(enhancedPrompt, systemPrompt);
                 
-                case 'tester':
-                    const testContent = this.generateMockTests(prompt, context);
-                    return `${testContent}\n\n// 💡 提示: 一旦AI模型集成完成，这将是真正由AI生成的测试\n// 🔧 可用工具: runShell (执行测试), writeFile (保存测试文件)`;
-                
-                case 'requirements':
-                    const analysisContent = this.generateMockAnalysis(prompt, context);
-                    return `${analysisContent}\n\n// 💡 提示: 一旦AI模型集成完成，这将是真正的需求分析\n// 🔧 可用工具: searchFiles (分析现有代码), readFile (理解项目结构)`;
-                
-                default:
-                    return `🤖 Agent "${step.agent}" 准备就绪，等待AI模型集成\n📝 Prompt: ${prompt.substring(0, 100)}...\n🔧 可用工具: ${this.toolManager.listToolNames().join(', ')}\n⚡ 工具统计: ${JSON.stringify(this.toolManager.getExecutionSummary())}`;
+                return `${aiResponse.content}
+
+---
+**AI Model Info**: ${aiResponse.model} | **Tokens**: ${aiResponse.usage?.totalTokens || 0} | **Time**: ${aiResponse.timestamp}
+🔧 **Available Tools**: ${this.toolManager.listToolNames().join(', ')}`;
+
+            } catch (aiError: any) {
+                // AI调用失败，使用增强的mock响应
+                logger.mcpDebug(`AI model call failed, using enhanced mock: ${aiError.message}`);
+                return this.generateEnhancedMockResponse(step, prompt, context);
             }
-        } catch (error) {
+        } catch (error: any) {
             logger.mcpDebug(`❌ Step execution error: ${step.name}`, error);
-            return `Error in ${step.agent}: ${error instanceof Error ? error.message : 'Unknown error'}`;
+            return `Error in ${step.agent}: ${error.message}`;
+        }
+    }
+
+    private buildSystemPrompt(agent: string, context: any): string {
+        const basePrompt = `You are a helpful AI assistant specialized in ${agent}. You have access to powerful tools for file operations, shell commands, and project analysis.`;
+        
+        switch (agent) {
+            case 'coder':
+                return `${basePrompt}
+
+You are an expert software developer. Your task is to write clean, efficient, and well-documented code.
+
+Available Tools:
+- writeFile: Create or update files
+- readFile: Analyze existing code  
+- searchFiles: Find relevant files
+- runShell: Execute build/test commands
+
+Guidelines:
+- Write production-ready code with proper error handling
+- Include meaningful comments and documentation
+- Follow best practices for the target language
+- Consider security and performance implications
+- Use appropriate design patterns`;
+
+            case 'tester':
+                return `${basePrompt}
+
+You are a test automation expert. Your task is to create comprehensive test suites.
+
+Available Tools:
+- writeFile: Create test files
+- readFile: Analyze code to test
+- runShell: Execute tests and generate reports
+
+Guidelines:
+- Write thorough unit and integration tests
+- Include edge cases and error scenarios
+- Use appropriate testing frameworks
+- Ensure good test coverage
+- Write clear test descriptions`;
+
+            case 'requirements':
+                return `${basePrompt}
+
+You are a business analyst and requirements engineer. Your task is to analyze and document requirements.
+
+Available Tools:
+- readFile: Analyze existing code and documentation
+- searchFiles: Find related requirements or specs
+- writeFile: Create requirement documents
+
+Guidelines:
+- Provide clear, actionable requirements
+- Identify potential risks and dependencies
+- Consider user experience and business value
+- Break down complex requirements into manageable tasks
+- Include acceptance criteria`;
+
+            default:
+                return `${basePrompt}
+
+Context Information:
+- Current file: ${context.file || 'Not specified'}
+- Language: ${context.language || 'Not specified'}
+- Has selection: ${context.selection ? 'Yes' : 'No'}
+
+Please provide helpful, accurate, and actionable responses based on the user's request.`;
+        }
+    }
+
+    private buildEnhancedPrompt(step: PresetStep, prompt: string, context: any): string {
+        let enhancedPrompt = `User Request: ${prompt}
+
+Context Information:`;
+
+        if (context.file) {
+            enhancedPrompt += `\n- Current File: ${context.file}`;
+        }
+        if (context.language) {
+            enhancedPrompt += `\n- Programming Language: ${context.language}`;
+        }
+        if (context.selection) {
+            enhancedPrompt += `\n- Selected Code:\n\`\`\`${context.language || ''}\n${context.selection}\n\`\`\``;
+        }
+        if (context.gitDiff) {
+            enhancedPrompt += `\n- Git Changes:\n\`\`\`diff\n${context.gitDiff}\n\`\`\``;
+        }
+
+        enhancedPrompt += `\n\nStep Context:
+- Step Name: ${step.name}
+- Agent Type: ${step.agent}
+- Step Prompt: ${step.prompt}
+
+Available Tools: ${this.toolManager.listToolNames().join(', ')}
+
+Please provide a detailed, actionable response that addresses the user's request.`;
+
+        return enhancedPrompt;
+    }
+
+    private generateEnhancedMockResponse(step: PresetStep, prompt: string, context: any): string {
+        const modelInfo = this.aiManager.getModelInfo();
+        const toolNames = this.toolManager.listToolNames().join(', ');
+        
+        const mockHeader = `⚡ **Enhanced Mock Response** (AI Model: ${modelInfo.configured ? 'Configured but failed' : 'Not configured'})
+🔧 **Available Tools**: ${toolNames}
+
+`;
+
+        switch (step.agent) {
+            case 'coder':
+                const fileName = context.file ? path.basename(context.file) : 'generated.js';
+                const language = context.language || 'javascript';
+                
+                return mockHeader + `\`\`\`${language}
+// AI Generated Code for ${fileName}
+// Based on: ${prompt.substring(0, 80)}...
+
+${this.generateMockCodeByLanguage(language, context)}
+\`\`\`
+
+**Next Steps:**
+1. Review and customize the generated code
+2. Use \`writeFile\` tool to save to project
+3. Use \`runShell\` tool to test the implementation
+4. Configure AI model (OPENAI_API_KEY) for intelligent code generation
+
+**Tool Recommendations:**
+- \`writeFile("${fileName}", code)\` - Save the generated code
+- \`runShell("npm test")\` - Run tests after implementation`;
+
+            case 'tester':
+                return mockHeader + `\`\`\`javascript
+// AI Generated Test Suite
+// Based on: ${prompt.substring(0, 80)}...
+
+describe('${context.file ? path.basename(context.file, path.extname(context.file)) : 'Component'} Tests', () => {
+    beforeEach(() => {
+        // Setup test environment
+    });
+
+    test('should handle valid input', () => {
+        // Test implementation here
+        expect(true).toBe(true);
+    });
+
+    test('should handle edge cases', () => {
+        // Edge case testing
+        expect(() => {
+            // Error case
+        }).toThrow();
+    });
+
+    test('should integrate with dependencies', async () => {
+        // Integration testing
+        const result = await processFunction();
+        expect(result).toBeDefined();
+    });
+});
+\`\`\`
+
+**Testing Strategy:**
+1. Unit tests for core functionality
+2. Integration tests for external dependencies  
+3. Edge case and error handling tests
+4. Performance tests if applicable
+
+**Tool Usage:**
+- \`writeFile("test.spec.js", testCode)\` - Save test suite
+- \`runShell("npm test")\` - Execute tests`;
+
+            case 'requirements':
+                return mockHeader + `# Requirements Analysis Report
+
+## User Request Analysis
+**Original Request:** ${prompt}
+
+## Context Assessment
+- **File Context:** ${context.file || 'Not specified'}
+- **Language:** ${context.language || 'Multiple/Unknown'}
+- **Code Selection:** ${context.selection ? 'Yes - specific code block' : 'No - general request'}
+
+## Functional Requirements
+1. **Core Functionality**
+   - Primary feature implementation
+   - User interaction handling
+   - Data processing requirements
+
+2. **Technical Requirements**
+   - Technology stack compatibility
+   - Performance expectations
+   - Security considerations
+
+3. **Integration Requirements**
+   - External service dependencies
+   - Database interactions
+   - API integrations
+
+## Implementation Roadmap
+### Phase 1: Foundation
+- Set up project structure
+- Implement core interfaces
+- Basic functionality
+
+### Phase 2: Enhancement
+- Advanced features
+- Error handling
+- Optimization
+
+### Phase 3: Integration
+- Testing suite
+- Documentation
+- Deployment preparation
+
+## Risk Assessment
+- **Technical Risks:** Framework compatibility, performance
+- **Business Risks:** User adoption, maintenance overhead
+- **Mitigation:** Proper testing, documentation, monitoring
+
+## Recommended Tools
+- \`readFile\` - Analyze existing codebase
+- \`searchFiles\` - Find related components
+- \`writeFile\` - Document specifications
+- \`runShell\` - Validate technical feasibility
+
+**Note:** Configure AI model for intelligent, context-aware analysis.`;
+
+            default:
+                return mockHeader + `**Response for "${step.agent}" agent:**
+
+Based on your request: "${prompt}"
+
+This is an enhanced mock response with tool integration capabilities.
+
+**Context Analysis:**
+${Object.entries(context).map(([key, value]) => 
+    `- ${key}: ${typeof value === 'string' ? value.substring(0, 100) : JSON.stringify(value)}`
+).join('\n')}
+
+**Available Actions:**
+- Use \`writeFile\` to create or update files
+- Use \`readFile\` to analyze existing code
+- Use \`searchFiles\` to find relevant files  
+- Use \`runShell\` to execute commands
+
+**To Enable AI Intelligence:**
+1. Set OPENAI_API_KEY environment variable
+2. Install OpenAI package: \`npm install openai\`
+3. Restart MCP server
+
+Current tool statistics: ${JSON.stringify(this.toolManager.getExecutionSummary())}`;
+        }
+    }
+
+    private generateMockCodeByLanguage(language: string, context: any): string {
+        switch (language.toLowerCase()) {
+            case 'typescript':
+            case 'ts':
+                return `interface GeneratedInterface {
+    id: string;
+    data: any;
+    process(): Promise<boolean>;
+}
+
+export class AIGeneratedClass implements GeneratedInterface {
+    constructor(public id: string, public data: any) {}
+    
+    async process(): Promise<boolean> {
+        try {
+            console.log('Processing with AI Agent Hub');
+            // TODO: Implement actual business logic
+            return true;
+        } catch (error) {
+            console.error('Processing failed:', error);
+            return false;
+        }
+    }
+}
+
+export default AIGeneratedClass;`;
+
+            case 'python':
+            case 'py':
+                return `class AIGeneratedClass:
+    def __init__(self, id: str, data: any):
+        self.id = id
+        self.data = data
+    
+    async def process(self) -> bool:
+        """Process the data and return success status"""
+        try:
+            print(f"Processing {self.id} with AI Agent Hub")
+            # TODO: Implement actual business logic
+            return True
+        except Exception as e:
+            print(f"Processing failed: {e}")
+            return False
+
+if __name__ == "__main__":
+    processor = AIGeneratedClass("test", {"key": "value"})
+    result = processor.process()
+    print(f"Result: {result}")`;
+
+            default: // JavaScript
+                return `function aiGeneratedFunction(data) {
+    console.log('Generated by AI Agent Hub');
+    console.log('Context:', data);
+    
+    try {
+        // TODO: Implement actual business logic
+        return { 
+            success: true, 
+            processed: true,
+            timestamp: new Date().toISOString()
+        };
+    } catch (error) {
+        console.error('Processing failed:', error);
+        return { 
+            success: false, 
+            error: error.message 
+        };
+    }
+}
+
+module.exports = { aiGeneratedFunction };`;
         }
     }
 

@@ -119,6 +119,12 @@ export abstract class BaseTool {
         if (!security) return true;
 
         const path = require('path');
+        
+        // 额外的路径遍历检查
+        if (filePath.includes('..') || filePath.includes('~')) {
+            throw new Error('Path traversal patterns are not allowed');
+        }
+        
         const normalizedPath = path.resolve(this.workspaceRoot, filePath);
         
         // 确保路径在workspace内

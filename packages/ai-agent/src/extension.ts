@@ -150,10 +150,60 @@ class MCPClientManager {
 // Global MCP client manager
 let mcpClientManager: MCPClientManager;
 
+// 状态栏项
+let statusBarItem: vscode.StatusBarItem;
+
+// 工作流状态管理
+interface WorkflowStatus {
+    isRunning: boolean;
+    currentStep: string;
+    progress: number;
+    totalSteps: number;
+}
+
+let workflowStatus: WorkflowStatus = {
+    isRunning: false,
+    currentStep: '',
+    progress: 0,
+    totalSteps: 0
+};
+
+// 状态管理函数
+function updateWorkflowStatus(status: Partial<WorkflowStatus>) {
+    workflowStatus = { ...workflowStatus, ...status };
+    updateStatusBar();
+}
+
+function updateStatusBar() {
+    if (!statusBarItem) return;
+    
+    if (workflowStatus.isRunning) {
+        const percentage = workflowStatus.totalSteps > 0 
+            ? Math.round((workflowStatus.progress / workflowStatus.totalSteps) * 100)
+            : 0;
+        
+        statusBarItem.text = `$(sync~spin) AI Agent: ${workflowStatus.currentStep} (${percentage}%)`;
+        statusBarItem.tooltip = `正在执行工作流: ${workflowStatus.currentStep}`;
+        statusBarItem.backgroundColor = new vscode.ThemeColor('statusBarItem.warningBackground');
+    } else {
+        statusBarItem.text = `$(check) AI Agent Ready`;
+        statusBarItem.tooltip = 'AI Agent Hub 已就绪';
+        statusBarItem.backgroundColor = undefined;
+    }
+}
+
 // Helper functions
 function createCodingParticipant() {
     return vscode.chat.createChatParticipant('ai-agent.coding', async (request, context, stream, token) => {
         try {
+            // 开始工作流状态
+            updateWorkflowStatus({
+                isRunning: true,
+                currentStep: '收集上下文',
+                progress: 1,
+                totalSteps: 4
+            });
+
             stream.progress('正在收集智能上下文...');
             const codeContext = await collectContext();
             
@@ -161,8 +211,20 @@ function createCodingParticipant() {
                 stream.markdown(`### 📋 上下文分析\n${codeContext.contextSummary}\n`);
             }
             
+            // 更新状态
+            updateWorkflowStatus({
+                currentStep: '分析需求',
+                progress: 2
+            });
+            
             stream.progress('正在分析代码需求...');
             const result = await callMCPWorkflow('coding-with-ai', request.prompt);
+            
+            // 更新状态
+            updateWorkflowStatus({
+                currentStep: '生成代码',
+                progress: 3
+            });
             
             if (result.analysis) {
                 stream.markdown(`## 需求分析\n${result.analysis}\n`);
@@ -176,10 +238,33 @@ function createCodingParticipant() {
                 stream.markdown(`## 测试代码\n\`\`\`${getLanguageFromContext()}\n${result.tests}\n\`\`\``);
             }
             
+            // 完成状态
+            updateWorkflowStatus({
+                currentStep: '完成',
+                progress: 4,
+                isRunning: false
+            });
+            
+            // 2秒后重置状态
+            setTimeout(() => {
+                updateWorkflowStatus({
+                    isRunning: false,
+                    currentStep: '',
+                    progress: 0
+                });
+            }, 2000);
+            
             if (!result.code && !result.analysis) {
                 stream.markdown('❌ 抱歉，无法生成代码。请检查您的请求或稍后重试。');
             }
         } catch (error) {
+            // 错误时重置状态
+            updateWorkflowStatus({
+                isRunning: false,
+                currentStep: '错误',
+                progress: 0
+            });
+            
             stream.markdown(`❌ 处理请求时发生错误: ${error instanceof Error ? error.message : '未知错误'}`);
         }
         return { metadata: { command: 'coding' } };
@@ -357,6 +442,15 @@ async function callMCPWorkflow(preset: string, prompt: string): Promise<Workflow
 export function activate(context: vscode.ExtensionContext) {
     console.log('🚀 AI Agent Hub extension is now active!');
 
+    // 初始化状态栏
+    statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
+    statusBarItem.command = 'ai-agent.showStatus';
+    context.subscriptions.push(statusBarItem);
+    
+    // 初始化状态
+    updateStatusBar();
+    statusBarItem.show();
+
     // Initialize MCP client manager
     mcpClientManager = new MCPClientManager();
 
@@ -364,6 +458,21 @@ export function activate(context: vscode.ExtensionContext) {
     const codingParticipant = createCodingParticipant();
     const refactorParticipant = createRefactorParticipant();
     const requirementsParticipant = createRequirementsParticipant();
+
+    // 注册状态查看命令
+    const showStatusCommand = vscode.commands.registerCommand('ai-agent.showStatus', () => {
+        const status = workflowStatus.isRunning 
+            ? `正在执行: ${workflowStatus.currentStep} (${workflowStatus.progress}/${workflowStatus.totalSteps})`
+            : 'AI Agent Hub 就绪';
+        
+        vscode.window.showInformationMessage(`AI Agent Hub 状态: ${status}`, 'MCP 连接状态').then(selection => {
+            if (selection === 'MCP 连接状态') {
+                const connectionStatus = mcpClientManager ? '已连接' : '未连接';
+                vscode.window.showInformationMessage(`MCP 服务器: ${connectionStatus}`);
+            }
+        });
+    });
+    context.subscriptions.push(showStatusCommand);
 
     // Register MCP connection command
     const connectCommand = vscode.commands.registerCommand('ai-agent.connectMCP', async () => {
@@ -375,14 +484,6 @@ export function activate(context: vscode.ExtensionContext) {
         }
     });
     context.subscriptions.push(connectCommand);
-
-    // Register status bar
-    const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
-    statusBarItem.text = '$(robot) AI Agent Hub';
-    statusBarItem.tooltip = 'AI Agent Hub is active';
-    statusBarItem.command = 'ai-agent.connectMCP';
-    statusBarItem.show();
-    context.subscriptions.push(statusBarItem);
 
     // Register participants
     context.subscriptions.push(codingParticipant);
