@@ -334,7 +334,7 @@ export class MockAIService extends BaseAIService {
         return `// Generated code based on prompt: ${prompt.substring(0, 50)}...
 function exampleFunction() {
     // TODO: Implement functionality
-    console.log('This is mock generated code');
+    // This is mock generated code
     return 'success';
 }
 

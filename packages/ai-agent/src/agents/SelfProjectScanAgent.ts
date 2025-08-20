@@ -145,7 +145,7 @@ export class SelfProjectScanAgent {
 
   constructor(projectRoot?: string) {
     this.projectRoot = projectRoot || vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || process.cwd();
-    this.contextCollector = new ContextCollector();
+    this.contextCollector = new ContextCollector(this.projectRoot);
     this.contextRanker = new ContextRanker();
   }
 

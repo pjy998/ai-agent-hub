@@ -49,7 +49,6 @@ export interface McpConfig {
     logging: {
         level: 'debug' | 'info' | 'warn' | 'error';
         file: string;
-        console: boolean;
     };
     presets: {
         directory: string;
@@ -112,8 +111,7 @@ export const DEFAULT_CONFIG: McpConfig = {
     },
     logging: {
         level: 'info',
-        file: 'mcp-server.log',
-        console: true
+        file: 'mcp-server.log'
     },
     presets: {
         directory: './agents/presets',
@@ -145,7 +143,8 @@ export class ConfigManager {
                 return this.mergeConfig(DEFAULT_CONFIG, userConfig);
             }
         } catch (error) {
-            console.warn(`Failed to load config from ${this.configPath}:`, error);
+            // 使用stderr输出配置加载失败的警告
+            process.stderr.write(`[WARN] Failed to load config from ${this.configPath}: ${error}\n`);
         }
         
         return { ...DEFAULT_CONFIG };
@@ -220,19 +219,16 @@ export enum LogLevel {
 export class Logger {
     private level: LogLevel;
     private logFile?: string;
-    private consoleEnabled: boolean;
 
     constructor(configOrLevel: McpConfig['logging'] | LogLevel) {
         if (typeof configOrLevel === 'number') {
             // 直接传入LogLevel
             this.level = configOrLevel;
             this.logFile = undefined;
-            this.consoleEnabled = true;
         } else {
             // 传入配置对象
             this.level = this.parseLogLevel(configOrLevel.level);
             this.logFile = configOrLevel.file;
-            this.consoleEnabled = configOrLevel.console;
         }
     }
 
@@ -250,25 +246,13 @@ export class Logger {
         if (level < this.level) return;
 
         const timestamp = new Date().toISOString();
-        const levelName = LogLevel[level];
+        const levelName = LogLevel[level].toLowerCase();
         const logMessage = `[${timestamp}] [${levelName}] ${message}`;
 
-        if (this.consoleEnabled) {
-            switch (level) {
-                case LogLevel.DEBUG:
-                    console.debug(logMessage, ...args);
-                    break;
-                case LogLevel.INFO:
-                    console.info(logMessage, ...args);
-                    break;
-                case LogLevel.WARN:
-                    console.warn(logMessage, ...args);
-                    break;
-                case LogLevel.ERROR:
-                    console.error(logMessage, ...args);
-                    break;
-            }
-        }
+        // 根据MCP协议规范：所有日志都应该通过stderr输出，stdout专用于JSON-RPC通信
+        // VS Code将stderr显示为warning是正常的客户端行为，但我们需要保留级别标签来区分消息类型
+        const simpleMessage = `[${levelName}] ${message}${args.length > 0 ? ' ' + JSON.stringify(args) : ''}`;
+        process.stderr.write(`${simpleMessage}\n`);
 
         if (this.logFile) {
             try {
@@ -277,7 +261,7 @@ export class Logger {
                     : `${logMessage}\n`;
                 fs.appendFileSync(this.logFile, fullMessage, 'utf8');
             } catch (error) {
-                console.error('Failed to write to log file:', error);
+                process.stderr.write(`Failed to write to log file: ${error}\n`);
             }
         }
     }
@@ -495,3 +479,8 @@ export class Utils {
         return cloned;
     }
 }
+
+/**
+ * 全局Logger实例
+ */
+export const logger = new Logger(DEFAULT_CONFIG.logging);

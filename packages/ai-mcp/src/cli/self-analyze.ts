@@ -2,7 +2,7 @@
 
 import * as path from 'path';
 import * as fs from 'fs';
-import { SelfProjectScanAgent } from '../../ai-agent/src/agents/SelfProjectScanAgent';
+import { SelfProjectScanAgent } from '../agents/SelfProjectScanAgent';
 
 interface CLIOptions {
   format: 'markdown' | 'json' | 'html';
@@ -61,7 +61,7 @@ function parseArgs(args: string[]): CLIOptions {
 }
 
 function showHelp(): void {
-  console.log(`
+  process.stderr.write(`
 AI Agent Hub Self-Analysis Tool
 
 Usage: npx ai-agent-hub analyze-self [options]
@@ -89,25 +89,25 @@ async function main(): Promise<void> {
   }
 
   try {
-    console.log('🚀 AI Agent Hub Self-Analysis Tool');
-    console.log('=====================================');
+    process.stderr.write('🚀 AI Agent Hub Self-Analysis Tool\n');
+    process.stderr.write('=====================================\n');
     
     if (options.verbose) {
-      console.log(`Format: ${options.format}`);
-      console.log(`Output: ${options.output || 'auto-generated'}`);
-      console.log(`Working Directory: ${process.cwd()}`);
-      console.log('');
+      process.stderr.write(`Format: ${options.format}\n`);
+      process.stderr.write(`Output: ${options.output || 'auto-generated'}\n`);
+      process.stderr.write(`Working Directory: ${process.cwd()}\n`);
+      process.stderr.write('\n');
     }
 
     // 创建分析代理
     const agent = new SelfProjectScanAgent(process.cwd());
     
     // 执行项目扫描
-    console.log('🔍 Scanning project structure...');
+    process.stderr.write('🔍 Scanning project structure...\n');
     const analysis = await agent.scanProject();
     
     // 生成报告
-    console.log('📄 Generating analysis report...');
+    process.stderr.write('📄 Generating analysis report...\n');
     const report = await agent.generateReport(analysis);
     
     // 保存报告
@@ -137,32 +137,32 @@ async function main(): Promise<void> {
     }
     
     // 显示结果摘要
-    console.log('\n✅ Analysis Complete!');
-    console.log('=====================');
-    console.log(`📊 Overall Health Score: ${report.summary.overallHealth}/100`);
-    console.log(`🔴 Critical Issues: ${report.summary.criticalIssues}`);
-    console.log(`💡 Total Recommendations: ${report.summary.recommendations}`);
-    console.log(`📁 Report saved to: ${outputPath}`);
+    process.stderr.write('\n✅ Analysis Complete!\n');
+    process.stderr.write('=====================\n');
+    process.stderr.write(`📊 Overall Health Score: ${report.summary.overallHealth}/100\n`);
+    process.stderr.write(`🔴 Critical Issues: ${report.summary.criticalIssues}\n`);
+    process.stderr.write(`💡 Total Recommendations: ${report.summary.recommendations}\n`);
+    process.stderr.write(`📁 Report saved to: ${outputPath}\n`);
     
     if (options.verbose) {
-      console.log('\n📋 Quick Summary:');
-      console.log(`- Total Files: ${analysis.structure.totalFiles}`);
-      console.log(`- Total Lines: ${analysis.structure.totalLines}`);
-      console.log(`- Components Analyzed: ${analysis.components.length}`);
+      process.stderr.write('\n📋 Quick Summary:\n');
+      process.stderr.write(`- Total Files: ${analysis.structure.totalFiles}\n`);
+      process.stderr.write(`- Total Lines: ${analysis.structure.totalLines}\n`);
+      process.stderr.write(`- Components Analyzed: ${analysis.components.length}\n`);
       
-      const brokenComponents = analysis.components.filter(c => c.status === 'broken');
+      const brokenComponents = analysis.components.filter((c: any) => c.status === 'broken');
       if (brokenComponents.length > 0) {
-        console.log(`\n🔴 Broken Components:`);
-        brokenComponents.forEach(comp => {
-          console.log(`  - ${comp.name}: ${comp.issues.join(', ')}`);
+        process.stderr.write(`\n🔴 Broken Components:\n`);
+        brokenComponents.forEach((comp: any) => {
+          process.stderr.write(`  - ${comp.name}: ${comp.issues.join(', ')}\n`);
         });
       }
       
-      const highPriorityRecs = analysis.recommendations.filter(r => r.priority === 'high');
+      const highPriorityRecs = analysis.recommendations.filter((r: any) => r.priority === 'high');
       if (highPriorityRecs.length > 0) {
-        console.log(`\n⚠️ High Priority Recommendations:`);
-        highPriorityRecs.slice(0, 5).forEach((rec, index) => {
-          console.log(`  ${index + 1}. ${rec.title}`);
+        process.stderr.write(`\n⚠️ High Priority Recommendations:\n`);
+        highPriorityRecs.slice(0, 5).forEach((rec: any, index: number) => {
+          process.stderr.write(`  ${index + 1}. ${rec.title}\n`);
         });
       }
     }

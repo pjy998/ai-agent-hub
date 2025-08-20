@@ -1,6 +1,6 @@
 {
   "name": "ai-agent-hub-mcp",
-  "version": "0.0.8",
+  "version": "0.0.19",
   "description": "AI Agent Hub MCP Server",
   "main": "dist/index.js",
   "bin": {

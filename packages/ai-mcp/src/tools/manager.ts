@@ -4,6 +4,7 @@
  */
 
 import { BaseTool, ToolResult, ToolParams, ToolContext } from './base';
+import { logger } from '../utils/index.js';
 
 // 工具统计信息
 interface ToolStats {
@@ -35,7 +36,7 @@ export class ToolManager {
 
     constructor(workspaceRoot: string) {
         this.workspaceRoot = workspaceRoot;
-        console.log(`🔧 Tool Manager initialized for workspace: ${workspaceRoot}`);
+        logger.info(`🔧 Tool Manager initialized for workspace: ${workspaceRoot}`);
     }
 
     /**
@@ -45,7 +46,7 @@ export class ToolManager {
         const toolName = tool.getName();
         
         if (this.tools.has(toolName)) {
-            console.warn(`⚠️ Tool ${toolName} is already registered, overwriting...`);
+            logger.warn(`⚠️ Tool ${toolName} is already registered, overwriting...`);
         }
 
         this.tools.set(toolName, tool);
@@ -71,7 +72,7 @@ export class ToolManager {
         this.activeCalls.set(toolName, 0);
         this.rateLimitTracker.set(toolName, []);
 
-        console.log(`✅ Registered tool: ${toolName}`);
+        logger.info(`✅ Registered tool: ${toolName}`);
     }
 
     /**
@@ -266,14 +267,14 @@ export class ToolManager {
     updateToolConfig(toolName: string, config: Partial<ToolConfig>): boolean {
         const existingConfig = this.toolConfigs.get(toolName);
         if (!existingConfig) {
-            console.error(`❌ Tool not found for config update: ${toolName}`);
+            logger.error(`❌ Tool not found for config update: ${toolName}`);
             return false;
         }
 
         const newConfig = { ...existingConfig, ...config };
         this.toolConfigs.set(toolName, newConfig);
         
-        console.log(`✅ Updated config for tool: ${toolName}`, config);
+        logger.info(`✅ Updated config for tool: ${toolName}`);
         return true;
     }
 
@@ -322,7 +323,7 @@ export class ToolManager {
                     lastUsed: '',
                     averageExecutionTime: 0
                 });
-                console.log(`📊 Reset stats for tool: ${toolName}`);
+                logger.info(`📊 Reset stats for tool: ${toolName}`);
             }
         } else {
             this.toolStats.clear();
@@ -336,7 +337,7 @@ export class ToolManager {
                     averageExecutionTime: 0
                 });
             }
-            console.log('📊 Reset all tool statistics');
+            logger.info(`📊 Reset all tool statistics`);
         }
     }
 }

@@ -6,6 +6,7 @@
 import { ToolManager } from './manager';
 import { WriteFileTool, ReadFileTool, SearchFilesTool } from './file-tools';
 import { RunShellTool, GitTool } from './shell-tools';
+import { logger } from '../utils/index.js';
 
 /**
  * 创建并初始化工具管理器
@@ -22,8 +23,8 @@ export function createToolManager(workspaceRoot: string): ToolManager {
     manager.registerTool(new RunShellTool(workspaceRoot));
     manager.registerTool(new GitTool(workspaceRoot));
 
-    console.log(`🔧 Initialized tool manager with ${manager.getToolNames().length} tools`);
-    console.log(`📋 Available tools: ${manager.getToolNames().join(', ')}`);
+    logger.info(`🔧 Initialized tool manager with ${manager.getToolNames().length} tools`);
+    logger.info(`📋 Available tools: ${manager.getToolNames().join(', ')}`);
 
     return manager;
 }
@@ -52,7 +53,7 @@ export function validateWorkspaceSecurity(workspaceRoot: string): boolean {
         // 基本安全检查
         fs.accessSync(workspaceRoot, fs.constants.R_OK);
 
-        console.log(`✅ Workspace security validated: ${workspaceRoot}`);
+        logger.info(`✅ Workspace security validated: ${workspaceRoot}`);
         return true;
     } catch (error) {
         console.error(`❌ Workspace security validation failed: ${workspaceRoot}`, error);
@@ -73,7 +74,7 @@ export async function safeExecuteTool(
         const result = await manager.executeTool(toolName, params, context);
 
         if (!result.success) {
-            console.warn(`⚠️ Tool execution warning for ${toolName}:`, result.error);
+            logger.warn(`⚠️ Tool execution warning for ${toolName}: ${result.error}`);
         }
 
         return result;
@@ -105,7 +106,7 @@ export async function executeBatchTools(
 
         // 如果工具执行失败，记录警告但继续执行
         if (!result.success) {
-            console.warn(`⚠️ Tool ${name} failed, continuing with remaining tools`);
+            logger.warn(`⚠️ Tool ${name} failed, continuing with remaining tools`);
         }
     }
 

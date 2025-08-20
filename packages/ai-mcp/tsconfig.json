@@ -17,7 +17,11 @@
     "resolveJsonModule": true,
     "declaration": true,
     "declarationMap": true,
-    "emitDeclarationOnly": false
+    "emitDeclarationOnly": false,
+    "baseUrl": ".",
+    "paths": {
+      "../../ai-agent/src/*": ["../ai-agent/src/*"]
+    }
   },
   "include": [
     "src/**/*"

@@ -14,7 +14,7 @@ import * as yaml from 'yaml';
 import { createToolManager } from './tools/index';
 import { AIServiceManager } from './ai/manager';
 import { AIRequest } from './ai/types';
-import { ConfigManager, Logger, LogLevel } from './utils';
+import { ConfigManager, Logger, LogLevel, logger } from './utils';
 import { z } from 'zod';
 
 // 版本信息显示函数
@@ -30,11 +30,12 @@ function showVersionInfo(): string {
             const name = packageJson.name || 'ai-agent-hub';
             
             const versionInfo = `🤖 AI Agent Hub MCP Server - ${name} v${version}`;
-            console.log('='.repeat(60));
-            console.log(versionInfo);
-            console.log(`📅 Started at: ${new Date().toISOString()}`);
-            console.log(`📁 Working directory: ${currentDir}`);
-            console.log('='.repeat(60));
+            const logger = new Logger(LogLevel.INFO);
+            logger.info('='.repeat(60));
+            logger.info(versionInfo);
+            logger.info(`📅 Started at: ${new Date().toISOString()}`);
+            logger.info(`📁 Working directory: ${currentDir}`);
+            logger.info('='.repeat(60));
             
             return versionInfo;
         } else {
@@ -46,10 +47,11 @@ function showVersionInfo(): string {
                 const name = packageJson.name || 'ai-agent-hub-mcp';
                 
                 const versionInfo = `🤖 AI Agent Hub MCP Server - ${name} v${version}`;
-                console.log('='.repeat(60));
-                console.log(versionInfo);
-                console.log(`📅 Started at: ${new Date().toISOString()}`);
-                console.log('='.repeat(60));
+                const logger = new Logger(LogLevel.INFO);
+                logger.info('='.repeat(60));
+                logger.info(versionInfo);
+                logger.info(`📅 Started at: ${new Date().toISOString()}`);
+                logger.info('='.repeat(60));
                 
                 return versionInfo;
             }
@@ -59,9 +61,10 @@ function showVersionInfo(): string {
     }
     
     const fallbackInfo = '🤖 AI Agent Hub MCP Server - version unknown';
-    console.log('='.repeat(60));
-    console.log(fallbackInfo);
-    console.log('='.repeat(60));
+    const logger = new Logger(LogLevel.INFO);
+    logger.info('='.repeat(60));
+    logger.info(fallbackInfo);
+    logger.info('='.repeat(60));
     return fallbackInfo;
 }
 
@@ -126,7 +129,7 @@ class MCPServer {
     private loadPresets(): void {
         const presetsPath = path.join(this.presetsDir, '../../../agents/presets');
         if (!fs.existsSync(presetsPath)) {
-            console.warn(`Presets directory not found: ${presetsPath}`);
+            console.error(`Presets directory not found: ${presetsPath}`);
             return;
         }
 
@@ -137,9 +140,9 @@ class MCPServer {
                 const content = fs.readFileSync(path.join(presetsPath, file), 'utf8');
                 const preset = yaml.parse(content) as Preset;
                 this.presets.set(preset.name, preset);
-                console.log(`📋 Loaded preset: ${preset.name}`);
+                logger.info(`📋 Loaded preset: ${preset.name}`);
             } catch (error) {
-                console.error(`Failed to load preset ${file}:`, error);
+                logger.error(`Failed to load preset ${file}: ${error}`);
             }
         }
     }
@@ -285,7 +288,7 @@ class MCPServer {
             throw new Error(`Preset not found: ${presetName}`);
         }
 
-        console.log(`🔄 Executing workflow: ${presetName}`);
+        console.error(`🔄 Executing workflow: ${presetName}`);
         const steps: any[] = [];
         const outputs: any = {};
 
@@ -328,7 +331,7 @@ class MCPServer {
     }
 
     private async executeStep(step: PresetStep, prompt: string, context: any): Promise<string> {
-        console.log(`🔧 Executing step: ${step.name} (type: ${step.type})`);
+        console.error(`🔧 Executing step: ${step.name} (type: ${step.type})`);
 
         try {
             const aiRequest: AIRequest = {
@@ -376,7 +379,7 @@ class MCPServer {
     private getFallbackResponse(stepType: string, prompt: string, context: any): string {
         switch (stepType) {
             case 'coding':
-                return `// Generated code for: ${context.file || 'unknown file'}\n// Based on prompt: ${prompt.substring(0, 50)}...\n\nfunction generatedFunction() {\n    // TODO: Implement actual functionality\n    console.log('This is fallback generated code');\n}`;
+                return `// Generated code for: ${context.file || 'unknown file'}\n// Based on prompt: ${prompt.substring(0, 50)}...\n\nfunction generatedFunction() {\n    // TODO: Implement actual functionality\n    // This is fallback generated code\n}`;
             case 'testing':
                 return `// Generated tests for: ${context.file || 'unknown file'}\n// Based on prompt: ${prompt.substring(0, 50)}...\n\ndescribe('Generated Test Suite', () => {\n    it('should pass fallback test', () => {\n        expect(true).toBe(true);\n    });\n});`;
             case 'requirements':
@@ -390,24 +393,24 @@ class MCPServer {
         const transport = new StdioServerTransport();
         await this.server.connect(transport);
         
-        console.log('🚀 MCP Server started with stdio transport');
-        console.log(`📊 Loaded ${this.presets.size} presets`);
+        this.logger.info('🚀 MCP Server started with stdio transport');
+        this.logger.info(`📊 Loaded ${this.presets.size} presets`);
         
         // 显示可用工具信息
         const toolNames = this.toolManager.getToolNames();
-        console.log(`🔧 Available tools: ${toolNames.length}`);
-        console.log('   Tools: ' + toolNames.join(', '));
+        this.logger.info(`🔧 Available tools: ${toolNames.length}`);
+        this.logger.info('   Tools: ' + toolNames.join(', '));
         
         // 显示AI服务信息
         const servicesInfo = this.aiManager.getAllServicesInfo();
-        console.log(`🤖 AI services: ${servicesInfo.length}`);
-        console.log('   Services: ' + servicesInfo.map(info => `${info.provider}(${info.status})`).join(', '));
+        this.logger.info(`🤖 AI services: ${servicesInfo.length}`);
+        this.logger.info('   Services: ' + servicesInfo.map(info => `${info.provider}(${info.status})`).join(', '));
         
-        console.log('\n📖 Usage:');
-        console.log('   • Configure in VS Code: .vscode/settings.json');
-        console.log('   • Available commands: start, status, version');
-        console.log('   • Documentation: VS_CODE_USAGE.md');
-        console.log('='.repeat(60));
+        this.logger.info('\n📖 Usage:');
+        this.logger.info('   • Configure in VS Code: .vscode/settings.json');
+        this.logger.info('   • Available commands: start, status, version');
+        this.logger.info('   • Documentation: VS_CODE_USAGE.md');
+        this.logger.info('='.repeat(60));
     }
 }
 
@@ -433,8 +436,8 @@ program
     .command('status')
     .description('Check server status')
     .action(async () => {
-        console.log('MCP Server status check not available in stdio mode');
-        console.log('Server runs via stdio transport when started');
+        console.error('MCP Server status check not available in stdio mode');
+        console.error('Server runs via stdio transport when started');
     });
 
 program

@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { Client } from '@modelcontextprotocol/sdk/client';
+// import { Client } from '@modelcontextprotocol/sdk/client';
 import * as fs from 'fs';
 import * as path from 'path';
 import { SelfProjectScanAgent } from './agents/SelfProjectScanAgent';
@@ -37,16 +37,16 @@ interface CodeContext {
 
 // MCP客户端管理器
 class MCPClientManager {
-    private client: Client | null = null;
+    private client: any | null = null;
     private isConnected = false;
 
     async connect(): Promise<void> {
         try {
             // 这里需要根据实际的MCP SDK API进行调整
-            this.client = new Client({
-                name: 'ai-agent-vscode',
-                version: '0.0.9'
-            });
+            // this.client = new Client({
+            //     name: 'ai-agent-vscode',
+            //     version: '0.0.9'
+            // });
             
             // 连接到MCP服务器
             await this.client.connect();
@@ -136,7 +136,7 @@ class CodingParticipant extends BaseChatParticipant {
             
             stream.markdown(result);
         } catch (error) {
-            stream.markdown(`Error: ${error.message}`);
+            stream.markdown(`Error: ${error instanceof Error ? error.message : String(error)}`);
         }
     }
 }
@@ -155,7 +155,7 @@ class RefactorParticipant extends BaseChatParticipant {
             
             stream.markdown(result);
         } catch (error) {
-            stream.markdown(`Error: ${error.message}`);
+            stream.markdown(`Error: ${error instanceof Error ? error.message : String(error)}`);
         }
     }
 }
@@ -470,7 +470,7 @@ export async function activate(context: vscode.ExtensionContext) {
     } catch (error) {
         console.error('Failed to activate AI Agent Hub extension:', error);
         statusBarItem.text = '$(robot) AI Agent ✗';
-        statusBarItem.tooltip = `AI Agent Hub Error: ${error.message}`;
+        statusBarItem.tooltip = `AI Agent Hub Error: ${error instanceof Error ? error.message : String(error)}`;
     }
 }
 

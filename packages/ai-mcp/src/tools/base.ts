@@ -5,6 +5,7 @@
 
 import * as path from 'path';
 import * as fs from 'fs';
+import { logger } from '../utils/index.js';
 
 // 工具执行结果接口
 export interface ToolResult {
@@ -80,7 +81,7 @@ export abstract class BaseTool {
             
             // 如果相对路径以..开头，说明试图访问工作区外的文件
             if (relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
-                console.warn(`🚨 Security: Attempted to access file outside workspace: ${filePath}`);
+                logger.warn(`🚨 Security: Attempted to access file outside workspace: ${filePath}`);
                 return false;
             }
 
@@ -97,7 +98,7 @@ export abstract class BaseTool {
 
             for (const pattern of dangerousPatterns) {
                 if (pattern.test(absolutePath)) {
-                    console.warn(`🚨 Security: Dangerous path pattern detected: ${filePath}`);
+                    logger.warn(`🚨 Security: Dangerous path pattern detected: ${filePath}`);
                     return false;
                 }
             }
@@ -139,7 +140,7 @@ export abstract class BaseTool {
             
             for (const dangerous of dangerousCommands) {
                 if (lowerCommand.includes(dangerous.toLowerCase())) {
-                    console.warn(`🚨 Security: Dangerous command detected: ${command}`);
+                    logger.warn(`🚨 Security: Dangerous command detected: ${command}`);
                     return false;
                 }
             }
@@ -148,7 +149,7 @@ export abstract class BaseTool {
             const dangerousChars = ['|', '&', ';', '`', '$', '>', '<', '||', '&&'];
             for (const char of dangerousChars) {
                 if (command.includes(char)) {
-                    console.warn(`🚨 Security: Dangerous character '${char}' in command: ${command}`);
+                    logger.warn(`🚨 Security: Dangerous character '${char}' in command: ${command}`);
                     return false;
                 }
             }
@@ -172,7 +173,7 @@ export abstract class BaseTool {
             // 检查参数大小限制
             const paramsString = JSON.stringify(params);
             if (paramsString.length > 10000) { // 10KB限制
-                console.warn(`🚨 Security: Parameters too large: ${paramsString.length} bytes`);
+                logger.warn(`🚨 Security: Parameters too large: ${paramsString.length} bytes`);
                 return false;
             }
 
@@ -213,9 +214,9 @@ export abstract class BaseTool {
         };
 
         if (result.success) {
-            console.log(`✅ Tool executed: ${this.toolName}`, logEntry);
+            logger.info(`✅ Tool executed: ${this.toolName}`);
         } else {
-            console.error(`❌ Tool failed: ${this.toolName}`, logEntry);
+            logger.error(`❌ Tool failed: ${this.toolName}`);
         }
     }
 
