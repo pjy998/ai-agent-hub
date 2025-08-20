@@ -1,0 +1,211 @@
+name: "Self Project Analysis"
+description: "Analyze ai-agent-hub project structure, capabilities, and generate improvement recommendations"
+version: "1.0.0"
+author: "AI Agent Hub Team"
+
+# 项目自我分析工作流
+workflow:
+  # 第一步：项目结构扫描
+  - step: "scan_project_structure"
+    description: "扫描项目目录结构和文件组织"
+    action: "analyze"
+    parameters:
+      target: "project_root"
+      include_patterns:
+        - "**/*.ts"
+        - "**/*.js" 
+        - "**/*.json"
+        - "**/*.yaml"
+        - "**/*.md"
+      exclude_patterns:
+        - "node_modules/**"
+        - ".git/**"
+        - "dist/**"
+        - "build/**"
+      analysis_depth: "deep"
+    tools:
+      - "readFile"
+      - "searchFile"
+
+  # 第二步：核心组件识别
+  - step: "identify_core_components"
+    description: "识别项目的核心组件和模块"
+    action: "analyze"
+    parameters:
+      focus_areas:
+        - "VS Code Extension (packages/ai-agent/)"
+        - "MCP Server (packages/ai-mcp/)"
+        - "Preset System (agents/presets/)"
+        - "Context Intelligence (src/context/)"
+        - "Tools Framework (src/tools/)"
+      component_analysis:
+        - "entry_points"
+        - "public_apis"
+        - "internal_dependencies"
+        - "external_dependencies"
+    tools:
+      - "readFile"
+      - "searchFile"
+
+  # 第三步：依赖关系分析
+  - step: "analyze_dependencies"
+    description: "分析项目内部和外部依赖关系"
+    action: "analyze"
+    parameters:
+      dependency_types:
+        - "npm_packages"
+        - "internal_modules"
+        - "file_imports"
+        - "type_dependencies"
+      analysis_scope:
+        - "circular_dependencies"
+        - "unused_dependencies"
+        - "version_conflicts"
+        - "security_vulnerabilities"
+    tools:
+      - "readFile"
+      - "runShell"
+
+  # 第四步：代码质量评估
+  - step: "assess_code_quality"
+    description: "评估代码质量和架构设计"
+    action: "analyze"
+    parameters:
+      quality_metrics:
+        - "code_complexity"
+        - "test_coverage"
+        - "documentation_completeness"
+        - "type_safety"
+        - "error_handling"
+      architecture_review:
+        - "separation_of_concerns"
+        - "single_responsibility"
+        - "dependency_injection"
+        - "interface_design"
+    tools:
+      - "readFile"
+      - "searchFile"
+      - "runShell"
+
+  # 第五步：功能完整性检查
+  - step: "check_feature_completeness"
+    description: "检查功能实现的完整性和一致性"
+    action: "analyze"
+    parameters:
+      feature_areas:
+        - "VS Code Extension Activation"
+        - "MCP Server Communication"
+        - "Preset Loading and Execution"
+        - "Context Collection and Ranking"
+        - "Tool Security and Validation"
+        - "Error Handling and Logging"
+      completeness_criteria:
+        - "implementation_status"
+        - "test_coverage"
+        - "documentation_status"
+        - "user_experience"
+    tools:
+      - "readFile"
+      - "searchFile"
+
+  # 第六步：性能分析
+  - step: "analyze_performance"
+    description: "分析项目性能瓶颈和优化机会"
+    action: "analyze"
+    parameters:
+      performance_areas:
+        - "startup_time"
+        - "memory_usage"
+        - "file_processing_speed"
+        - "context_collection_efficiency"
+        - "tool_execution_latency"
+      optimization_targets:
+        - "large_file_handling"
+        - "concurrent_operations"
+        - "caching_strategies"
+        - "resource_cleanup"
+    tools:
+      - "readFile"
+      - "runShell"
+
+  # 第七步：安全性审查
+  - step: "security_audit"
+    description: "审查项目的安全性实现"
+    action: "analyze"
+    parameters:
+      security_aspects:
+        - "file_path_validation"
+        - "shell_command_sanitization"
+        - "user_input_validation"
+        - "privilege_escalation_prevention"
+        - "sensitive_data_handling"
+      vulnerability_checks:
+        - "path_traversal"
+        - "command_injection"
+        - "xss_prevention"
+        - "dependency_vulnerabilities"
+    tools:
+      - "readFile"
+      - "searchFile"
+      - "runShell"
+
+  # 第八步：生成改进建议
+  - step: "generate_improvement_suggestions"
+    description: "基于分析结果生成具体的改进建议"
+    action: "synthesize"
+    parameters:
+      suggestion_categories:
+        - "critical_fixes"
+        - "performance_optimizations"
+        - "security_enhancements"
+        - "code_quality_improvements"
+        - "feature_completions"
+        - "documentation_updates"
+      prioritization_criteria:
+        - "impact_level"
+        - "implementation_effort"
+        - "risk_assessment"
+        - "user_value"
+      output_format:
+        - "executive_summary"
+        - "detailed_recommendations"
+        - "implementation_roadmap"
+        - "risk_mitigation_plan"
+
+# 输出配置
+output:
+  formats:
+    - "markdown_report"
+    - "json_data"
+    - "html_dashboard"
+  
+  report_sections:
+    - "project_overview"
+    - "architecture_analysis"
+    - "quality_assessment"
+    - "security_review"
+    - "performance_analysis"
+    - "improvement_roadmap"
+    - "next_steps"
+
+  file_naming:
+    pattern: "self-analysis-{timestamp}"
+    timestamp_format: "YYYY-MM-DD-HHmm"
+    output_directory: "reports/"
+
+# 配置选项
+configuration:
+  analysis_depth: "comprehensive"  # basic | standard | comprehensive
+  include_external_deps: true
+  generate_visualizations: true
+  include_code_examples: true
+  max_file_size_mb: 10
+  timeout_minutes: 30
+
+# 元数据
+metadata:
+  created_date: "2025-08-20"
+  last_updated: "2025-08-20"
+  compatible_versions: ["0.0.9+"]
+  required_tools: ["readFile", "writeFile", "searchFile", "runShell"]
+  estimated_runtime: "5-10 minutes"

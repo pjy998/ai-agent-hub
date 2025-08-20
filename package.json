@@ -14,7 +14,11 @@
     "test:ai-agent": "cd packages/ai-agent && npm test",
     "test:ai-mcp": "cd packages/ai-mcp && npm test",
     "lint": "eslint packages/*/src/**/*.ts",
-    "clean": "rimraf packages/*/dist packages/*/out"
+    "clean": "rimraf packages/*/dist packages/*/out",
+    "analyze-self": "tsx packages/ai-mcp/src/cli/self-analyze.ts"
+  },
+  "bin": {
+    "ai-agent-hub": "packages/ai-mcp/src/cli/self-analyze.ts"
   },
   "workspaces": [
     "packages/*"
