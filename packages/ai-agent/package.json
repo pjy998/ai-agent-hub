@@ -1,15 +1,43 @@
 {
   "name": "ai-agent-vscode",
   "displayName": "AI Agent Hub",
-  "description": "AI Agent Hub VS Code Extension",
-  "version": "0.0.10",
+  "description": "AI-powered coding assistant with project analysis, C# coding standards, and intelligent workflow automation for VS Code",
+  "version": "0.0.14",
   "publisher": "jieky",
   "engines": {
     "vscode": "^1.74.0"
   },
   "categories": [
+    "Programming Languages",
+    "Linters",
     "Other"
   ],
+  "keywords": [
+    "ai",
+    "assistant",
+    "coding",
+    "analysis",
+    "csharp",
+    "standards",
+    "refactor",
+    "copilot",
+    "mcp",
+    "automation"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pjy998/ai-agent-hub.git"
+  },
+  "bugs": {
+    "url": "https://github.com/pjy998/ai-agent-hub/issues"
+  },
+  "homepage": "https://github.com/pjy998/ai-agent-hub#readme",
+  "license": "MIT",
+  "icon": "icon.png",
+  "galleryBanner": {
+    "color": "#1e1e1e",
+    "theme": "dark"
+  },
   "activationEvents": [
     "onStartupFinished"
   ],
@@ -73,11 +101,13 @@
   },
   "scripts": {
     "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./"
+    "watch": "tsc -watch -p ./",
+    "build": "npm run compile",
+    "package": "vsce package",
+    "publish": "vsce publish",
+    "vscode:prepublish": "npm run build"
   },
-  "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.17.3"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@types/node": "^24.3.0",
     "@types/vscode": "^1.74.0",

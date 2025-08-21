@@ -18,52 +18,90 @@
 
 ## 📐 System Architecture
 
+### 🔗 Package Integration Overview
+
+AI Agent Hub consists of two main packages that work together through the Model Context Protocol (MCP):
+
+- **`ai-agent`**: VS Code extension that provides the user interface and integrates with Copilot Chat
+- **`ai-mcp`**: MCP server that handles workflow execution, tool management, and AI service coordination
+
 ```mermaid
 flowchart TD
-    subgraph "Developer Operations"
-        A[Save File]
-        B[Select Text]
-        C[Copilot Chat with ai]
+    subgraph "VS Code Extension (ai-agent)"
+        A[TriggerListener]
+        B[ContextCollector]
+        C[MCPClientManager]
+        D[Chat Participants]
+        E[Project Analysis]
     end
     
-    subgraph "VS Code Extension Layer"
-        D[TriggerListener]
-        E[ContextCollector]
-        F[FlowDispatcher]
+    subgraph "MCP Protocol Layer"
+        F[stdio Transport]
+        G[JSON-RPC Messages]
     end
     
-    subgraph "MCP Hub Runtime"
-        G[FlowRunner]
-        H[PromptEngine]
-        I[ModelRouter]
-        J[AgentManager]
+    subgraph "MCP Server (ai-mcp)"
+        H[MCPServer]
+        I[ToolManager]
+        J[AIServiceManager]
+        K[PresetEngine]
+        L[ConfigManager]
     end
     
-    K[CopilotChat]
-    
-    subgraph "VS Code UI & Insertion"
-        L[Insert Code/Tests]
-        M[Output Panel]
-        N[Prompt Replay UI]
+    subgraph "External Services"
+        M[File System]
+        N[Git Repository]
+        O[AI Providers]
+        P[Shell Commands]
     end
     
-    A -->|onSave| D
-    B -->|onSelection| D
-    C -->|ai input| D
-    D -->|collect context| E
-    E -->|dispatch preset| F
-    F -->|POST /mcp/run| G
-    G -->|execute steps| H
-    H -->|route to model| I
-    I -->|forward to Copilot Chat| F
-    F -->|send prompt| K
-    K -->|reply| F
-    F -->|return reply| I
-    I -->|store replay| H
-    H -->|step completed| G
-    G -->|return results| L
-    G -->|return results| M
-    G -->|return results| N
+    A -->|collect context| B
+    B -->|send request| C
+    C -->|MCP call| F
+    F -->|transport| G
+    G -->|receive| H
+    H -->|execute workflow| K
+    K -->|use tools| I
+    I -->|manage AI| J
+    J -->|configure| L
+    
+    I -->|file operations| M
+    I -->|git commands| N
+    J -->|AI requests| O
+    I -->|shell execution| P
+    
+    H -->|results| G
+    G -->|response| F
+    F -->|return| C
+    C -->|display| D
+    D -->|analysis| E
+```
+
+### 🔄 Communication Flow
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant VSCode as VS Code Extension
+    participant MCP as MCP Client
+    participant Server as MCP Server
+    participant Tools as Tool System
+    participant AI as AI Services
+    
+    User->>VSCode: Trigger workflow (save/chat/select)
+    VSCode->>VSCode: Collect project context
+    VSCode->>MCP: Initialize MCP connection
+    MCP->>Server: Connect via stdio
+    VSCode->>MCP: Call execute_workflow
+    MCP->>Server: JSON-RPC request
+    Server->>Server: Load preset configuration
+    Server->>Tools: Execute workflow steps
+    Tools->>AI: Generate AI responses
+    AI->>Tools: Return results
+    Tools->>Server: Step completed
+    Server->>MCP: Return workflow results
+    MCP->>VSCode: Response data
+    VSCode->>User: Display results/insert code
 ```
 
 ### ⏱ Example Sequence Diagram (Save File Trigger)
@@ -216,27 +254,71 @@ VSCode -> UI: showReplay(step1, step2, step3)
 ```
 ai-agent-hub/
 ├─ packages/
-│  ├─ ai-agent/             # VS Code extension
-│  │   ├─ package.json
+│  ├─ ai-agent/                    # VS Code Extension Package
+│  │   ├─ package.json             # Extension manifest & commands
 │  │   ├─ src/
-│  │   │   └─ extension.ts
-│  │   ├─ extension-config.json
+│  │   │   ├─ extension.ts          # Main extension entry point
+│  │   │   ├─ agents/               # Project analysis agents
+│  │   │   │   └─ SelfProjectScanAgent.ts
+│  │   │   ├─ context/              # Context collection system
+│  │   │   │   └─ collector.ts
+│  │   │   └─ mcp/                  # MCP client integration
+│  │   │       └─ client.ts
 │  │   └─ README.md
-│  └─ ai-mcp/               # MCP CLI tool
-│      ├─ package.json
+│  └─ ai-mcp/                      # MCP Server Package
+│      ├─ package.json             # Server dependencies & scripts
 │      ├─ src/
-│      │   └─ index.ts
+│      │   ├─ index.ts             # MCP server main entry
+│      │   ├─ ai/                  # AI service management
+│      │   │   └─ manager.ts
+│      │   ├─ tools/               # Tool system implementation
+│      │   │   ├─ index.ts         # Tool registry
+│      │   │   ├─ manager.ts       # Tool execution manager
+│      │   │   ├─ file/            # File operation tools
+│      │   │   └─ shell/           # Shell command tools
+│      │   └─ utils/               # Configuration & utilities
+│      │       └─ index.ts
+│      ├─ mcp-config.example.json  # Server configuration template
 │      └─ README.md
 ├─ agents/
-│  └─ presets/
-│      ├─ coding-with-ai.yaml
-│      ├─ refactor.yaml
-│      └─ requirements-analysis.yaml
-├─ package.json
+│  └─ presets/                     # Shared YAML workflow definitions
+│      ├─ coding-with-ai.yaml      # Multi-step coding workflow
+│      ├─ refactor.yaml            # Code refactoring workflow
+│      ├─ requirements-analysis.yaml # Requirements analysis workflow
+│      └─ self-analyze.yaml        # Project self-analysis workflow
+├─ docs/                           # Documentation
+│  ├─ api-design.md
+│  ├─ feature-specs.md
+│  └─ requirements.md
+├─ mcp-config.json                 # MCP server configuration
+├─ package.json                    # Root workspace configuration
 ├─ README.md
-├─ roadmap.md
+├─ ROADMAP.md
 └─ LICENSE
 ```
+
+### 📦 Package Responsibilities
+
+#### `ai-agent` (VS Code Extension)
+- **User Interface**: Integrates with VS Code UI and Copilot Chat
+- **Context Collection**: Gathers project context (files, git status, dependencies)
+- **MCP Client**: Communicates with ai-mcp server via Model Context Protocol
+- **Project Analysis**: Self-scanning and analysis capabilities
+- **Chat Participants**: Handles different types of AI conversations (coding, refactoring, requirements)
+
+#### `ai-mcp` (MCP Server)
+- **Workflow Engine**: Executes YAML-defined preset workflows
+- **Tool Management**: Provides file operations, shell commands, git integration
+- **AI Service Coordination**: Manages multiple AI providers and routing
+- **Configuration Management**: Handles server settings and security policies
+- **Protocol Implementation**: Implements MCP server specification
+
+### 🔗 Integration Points
+
+1. **Shared Preset System**: Both packages use `agents/presets/` directory for workflow definitions
+2. **MCP Protocol**: Communication via JSON-RPC over stdio transport
+3. **Configuration**: `mcp-config.json` defines server startup and connection parameters
+4. **Context Sharing**: Extension collects context and passes to server for workflow execution
 
 ## 🤝 Contributing
 

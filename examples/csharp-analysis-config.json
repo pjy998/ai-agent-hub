@@ -1,0 +1,368 @@
+{
+  "$schema": "../schemas/csharp-analysis-config.schema.json",
+  "name": "C# 项目编码规范分析配置",
+  "description": "用于分析C#项目编码规范的配置示例",
+  "version": "1.0.0",
+  
+  "analysis": {
+    "target_project": {
+      "path": "C:\\Projects\\MyApp",
+      "name": "MyApplication",
+      "description": "示例C#应用程序项目",
+      "framework": ".NET 6.0",
+      "project_type": "web_api"
+    },
+    
+    "scope": {
+      "include_patterns": [
+        "**/*.cs",
+        "**/*.csproj",
+        "**/*.sln"
+      ],
+      "exclude_patterns": [
+        "**/bin/**",
+        "**/obj/**",
+        "**/packages/**",
+        "**/node_modules/**",
+        "**/wwwroot/lib/**",
+        "**/*.Designer.cs",
+        "**/*.generated.cs",
+        "**/Migrations/**"
+      ],
+      "max_file_size": "1MB",
+      "max_files": 10000
+    },
+    
+    "depth": "comprehensive",
+    "timeout": "30m",
+    "parallel_processing": true,
+    "cache_enabled": true
+  },
+  
+  "coding_standards": {
+    "reference_url": "https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/coding-style/coding-conventions",
+    "rules": {
+      "naming_conventions": {
+        "enabled": true,
+        "severity": "warning",
+        "rules": {
+          "class_names": "PascalCase",
+          "method_names": "PascalCase",
+          "property_names": "PascalCase",
+          "field_names": "camelCase",
+          "private_field_prefix": "_",
+          "constant_names": "PascalCase",
+          "interface_prefix": "I",
+          "generic_parameter_prefix": "T",
+          "enum_names": "PascalCase",
+          "namespace_names": "PascalCase"
+        }
+      },
+      
+      "formatting": {
+        "enabled": true,
+        "severity": "suggestion",
+        "rules": {
+          "indentation": {
+            "type": "spaces",
+            "size": 4
+          },
+          "brace_style": "Allman",
+          "line_length": 120,
+          "blank_lines": {
+            "before_namespace": 0,
+            "after_namespace": 1,
+            "before_class": 1,
+            "after_class": 1,
+            "before_method": 1,
+            "after_method": 1
+          },
+          "spacing": {
+            "around_operators": true,
+            "after_keywords": true,
+            "before_parentheses": false
+          }
+        }
+      },
+      
+      "language_features": {
+        "enabled": true,
+        "severity": "info",
+        "rules": {
+          "var_usage": "when_type_obvious",
+          "language_keywords": "prefer_keywords",
+          "string_interpolation": "prefer_interpolation",
+          "null_conditional": "encourage",
+          "pattern_matching": "encourage",
+          "expression_bodied_members": "when_simple"
+        }
+      },
+      
+      "code_organization": {
+        "enabled": true,
+        "severity": "warning",
+        "rules": {
+          "using_statements": {
+            "sort_order": ["System", "Microsoft", "Third-party", "Local"],
+            "remove_unused": true,
+            "separate_groups": true
+          },
+          "member_ordering": [
+            "constants",
+            "fields",
+            "constructors",
+            "properties",
+            "events",
+            "methods",
+            "nested_types"
+          ],
+          "access_modifiers": "always_explicit"
+        }
+      }
+    }
+  },
+  
+  "quality_metrics": {
+    "complexity": {
+      "enabled": true,
+      "thresholds": {
+        "cyclomatic_complexity": {
+          "method_warning": 10,
+          "method_error": 20,
+          "class_warning": 50,
+          "class_error": 100
+        },
+        "inheritance_depth": {
+          "warning": 5,
+          "error": 8
+        },
+        "coupling": {
+          "afferent_warning": 20,
+          "efferent_warning": 20
+        }
+      }
+    },
+    
+    "maintainability": {
+      "enabled": true,
+      "thresholds": {
+        "method_length": {
+          "warning": 50,
+          "error": 100
+        },
+        "class_length": {
+          "warning": 500,
+          "error": 1000
+        },
+        "parameter_count": {
+          "warning": 5,
+          "error": 8
+        },
+        "nesting_depth": {
+          "warning": 4,
+          "error": 6
+        },
+        "duplication": {
+          "threshold": 0.1,
+          "min_lines": 6
+        }
+      }
+    },
+    
+    "readability": {
+      "enabled": true,
+      "rules": {
+        "comment_coverage": {
+          "public_members": 0.8,
+          "complex_methods": 0.9
+        },
+        "naming_clarity": {
+          "min_length": 3,
+          "avoid_abbreviations": true,
+          "descriptive_names": true
+        }
+      }
+    }
+  },
+  
+  "security_checks": {
+    "enabled": true,
+    "severity": "error",
+    "categories": {
+      "input_validation": {
+        "enabled": true,
+        "checks": [
+          "sql_injection",
+          "xss_prevention",
+          "path_traversal",
+          "command_injection",
+          "deserialization"
+        ]
+      },
+      "data_protection": {
+        "enabled": true,
+        "checks": [
+          "sensitive_data_exposure",
+          "encryption_usage",
+          "secure_random",
+          "password_handling",
+          "logging_security"
+        ]
+      },
+      "exception_handling": {
+        "enabled": true,
+        "checks": [
+          "information_disclosure",
+          "resource_leaks",
+          "error_handling_completeness",
+          "finally_blocks"
+        ]
+      }
+    }
+  },
+  
+  "performance_analysis": {
+    "enabled": true,
+    "categories": {
+      "string_operations": {
+        "enabled": true,
+        "checks": [
+          "string_concatenation",
+          "string_builder_usage",
+          "string_comparison",
+          "regex_compilation"
+        ]
+      },
+      "collections": {
+        "enabled": true,
+        "checks": [
+          "collection_initialization",
+          "linq_performance",
+          "enumeration_multiple",
+          "capacity_setting"
+        ]
+      },
+      "resource_management": {
+        "enabled": true,
+        "checks": [
+          "disposable_usage",
+          "using_statements",
+          "finalizers",
+          "memory_leaks"
+        ]
+      },
+      "async_patterns": {
+        "enabled": true,
+        "checks": [
+          "async_await_usage",
+          "task_configuration",
+          "deadlock_prevention",
+          "cancellation_tokens"
+        ]
+      }
+    }
+  },
+  
+  "reporting": {
+    "output_directory": "./reports",
+    "formats": ["markdown", "json", "xml"],
+    "include_examples": true,
+    "include_metrics": true,
+    "include_charts": true,
+    
+    "sections": {
+      "executive_summary": {
+        "enabled": true,
+        "include_score": true,
+        "include_trends": true
+      },
+      "detailed_analysis": {
+        "enabled": true,
+        "group_by_category": true,
+        "include_code_snippets": true
+      },
+      "issues_list": {
+        "enabled": true,
+        "sort_by": "severity",
+        "include_location": true,
+        "include_suggestions": true
+      },
+      "improvement_plan": {
+        "enabled": true,
+        "prioritize_by": "impact",
+        "include_timeline": true,
+        "include_effort_estimation": true
+      },
+      "tools_configuration": {
+        "enabled": true,
+        "generate_editorconfig": true,
+        "generate_ruleset": true,
+        "generate_stylecop": true
+      }
+    },
+    
+    "file_naming": {
+      "pattern": "csharp-analysis-{project_name}-{timestamp}",
+      "timestamp_format": "yyyy-MM-dd-HHmm"
+    }
+  },
+  
+  "integration": {
+    "ci_cd": {
+      "enabled": false,
+      "platforms": ["github_actions", "azure_devops", "jenkins"],
+      "fail_on_error": true,
+      "fail_on_warning": false
+    },
+    
+    "ide_integration": {
+      "visual_studio": {
+        "enabled": true,
+        "generate_ruleset": true,
+        "generate_editorconfig": true
+      },
+      "vscode": {
+        "enabled": true,
+        "generate_settings": true,
+        "recommend_extensions": true
+      },
+      "rider": {
+        "enabled": true,
+        "generate_settings": true
+      }
+    },
+    
+    "external_tools": {
+      "sonarqube": {
+        "enabled": false,
+        "export_format": "sonar_xml"
+      },
+      "resharper": {
+        "enabled": false,
+        "export_format": "resharper_xml"
+      }
+    }
+  },
+  
+  "notifications": {
+    "email": {
+      "enabled": false,
+      "recipients": ["team@company.com"],
+      "on_completion": true,
+      "on_error": true
+    },
+    "slack": {
+      "enabled": false,
+      "webhook_url": "https://hooks.slack.com/services/...",
+      "channel": "#code-quality"
+    }
+  },
+  
+  "metadata": {
+    "created_by": "AI Agent Hub",
+    "created_date": "2024-01-20",
+    "version": "1.0.0",
+    "description": "C# 编码规范分析配置示例",
+    "tags": ["csharp", "coding-standards", "quality", "microsoft"]
+  }
+}

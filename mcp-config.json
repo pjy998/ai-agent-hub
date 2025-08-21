@@ -1,53 +1,143 @@
 {
+  "$schema": "https://raw.githubusercontent.com/modelcontextprotocol/specification/main/schema/mcp_config_schema.json",
+  "description": "AI Agent Hub MCP Server Configuration - Connects VS Code extension with MCP server for workflow execution",
+  
   "mcpServers": {
     "ai-agent-hub": {
-      "command": "npx",
-      "args": ["ai-agent-hub-mcp", "start"],
+      "command": "node",
+      "args": ["./packages/ai-mcp/dist/index.js"],
       "cwd": "${workspaceFolder}",
       "env": {
-        "NODE_ENV": "production"
-      }
+        "NODE_ENV": "production",
+        "MCP_CONFIG_PATH": "./packages/ai-mcp/mcp-config.example.json",
+        "PRESET_DIR": "./agents/presets"
+      },
+      "transport": "stdio",
+      "timeout": 30000
     }
   },
-  "description": "AI Agent Hub MCP Server Configuration for VS Code",
+  
+  "configuration": {
+    "server": {
+      "name": "AI Agent Hub MCP Server",
+      "version": "0.0.10",
+      "description": "MCP server providing workflow execution, tool management, and AI service coordination",
+      "capabilities": {
+        "tools": true,
+        "resources": false,
+        "prompts": false,
+        "logging": true
+      }
+    },
+    "tools": {
+      "enabled": ["execute_workflow", "list_presets", "write_file", "read_file", "search_files", "run_shell", "git"],
+      "security": {
+        "workspace_restriction": true,
+        "command_whitelist": ["npm", "yarn", "git", "node", "python", "ls", "dir", "cat", "type"],
+        "max_file_size_mb": 10,
+        "max_execution_time_ms": 30000
+      }
+    },
+    "ai": {
+      "defaultProvider": "local",
+      "fallbackProviders": ["local"],
+      "enableFallback": true,
+      "maxRetries": 3
+    },
+    "presets": {
+      "directory": "./agents/presets",
+      "auto_load": true,
+      "cache_enabled": true,
+      "available": ["coding-with-ai", "refactor", "requirements-analysis", "self-analyze"]
+    }
+  },
+  
   "installation": {
+    "requirements": {
+      "node": ">= 18.0.0",
+      "npm": ">= 8.0.0",
+      "vscode": ">= 1.74.0"
+    },
+    "steps": {
+      "1": "Clone repository: git clone https://github.com/pjy998/ai-agent-hub.git",
+      "2": "Install dependencies: npm install",
+      "3": "Build packages: npm run build",
+      "4": "Configure VS Code: Copy this config to .vscode/settings.json"
+    },
     "global": "npm install -g ai-agent-hub-mcp",
-    "npx": "npx ai-agent-hub-mcp start",
     "local": "npm install ai-agent-hub-mcp"
   },
+  
   "usage": {
     "vscode": {
-      "settings": ".vscode/settings.json",
-      "manual": "Add this configuration to your VS Code settings",
-      "automatic": "Use the provided .vscode/settings.json file"
+      "settings_file": ".vscode/settings.json",
+      "configuration_key": "mcp.servers",
+      "manual_setup": "Add mcpServers configuration to VS Code settings",
+      "automatic_setup": "Use provided .vscode/settings.json template"
     },
     "cli": {
-      "start": "ai-agent-mcp start",
-      "list": "ai-agent-mcp list",
-      "status": "ai-agent-mcp status"
+      "start_server": "node ./packages/ai-mcp/dist/index.js",
+      "list_presets": "Use MCP client to call list_presets tool",
+      "execute_workflow": "Use MCP client to call execute_workflow tool"
+    },
+    "extension": {
+      "chat_commands": ["@coding", "@refactor", "@requirements", "@analyze"],
+      "triggers": ["File save", "Code selection", "Chat input"],
+      "workflows": ["coding-with-ai.yaml", "refactor.yaml", "requirements-analysis.yaml", "self-analyze.yaml"]
     }
   },
+  
   "crossPlatform": {
     "windows": {
-      "command": "npx",
-      "args": ["ai-agent-hub-mcp", "start"],
-      "transport": "stdio"
+      "command": "node",
+      "args": ["./packages/ai-mcp/dist/index.js"],
+      "transport": "stdio",
+      "shell": "powershell"
     },
     "darwin": {
-      "command": "npx",
-      "args": ["@ai-agent-hub/mcp", "start"],
-      "transport": "stdio"
+      "command": "node",
+      "args": ["./packages/ai-mcp/dist/index.js"],
+      "transport": "stdio",
+      "shell": "bash"
     },
     "linux": {
-      "command": "npx",
-      "args": ["@ai-agent-hub/mcp", "start"],
-      "transport": "stdio"
+      "command": "node",
+      "args": ["./packages/ai-mcp/dist/index.js"],
+      "transport": "stdio",
+      "shell": "bash"
     }
   },
+  
+  "development": {
+    "build_command": "npm run build",
+    "watch_mode": "npm run dev",
+    "test_command": "npm test",
+    "debug": {
+      "log_level": "debug",
+      "enable_tracing": true,
+      "output_file": "mcp-debug.log"
+    }
+  },
+  
+  "troubleshooting": {
+    "common_issues": {
+      "connection_failed": "Check if MCP server is built and paths are correct",
+      "tool_not_found": "Verify tool is enabled in configuration",
+      "preset_not_loaded": "Check preset directory path and YAML syntax",
+      "permission_denied": "Verify workspace restriction and command whitelist settings"
+    },
+    "logs": {
+      "server_log": "Check console output for MCP server errors",
+      "extension_log": "Check VS Code Developer Console for extension errors",
+      "debug_mode": "Set NODE_ENV=development for verbose logging"
+    }
+  },
+  
   "remoteSSH": {
     "supported": true,
     "autoDetect": true,
-    "command": "npx",
-    "args": ["@ai-agent-hub/mcp", "start"]
+    "command": "node",
+    "args": ["./packages/ai-mcp/dist/index.js"],
+    "notes": "Ensure Node.js and dependencies are installed on remote machine"
   }
 }

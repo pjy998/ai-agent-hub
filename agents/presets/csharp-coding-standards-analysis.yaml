@@ -1,0 +1,253 @@
+name: "C# Coding Standards Analysis"
+description: "基于微软编码规范分析C#项目的代码质量和规范性"
+version: "1.0.0"
+author: "AI Agent Hub"
+
+# 代理定义
+agents:
+  analyzer:
+    name: "C# Code Analyzer"
+    description: "专门分析C#代码规范的代理"
+    capabilities:
+      - "代码静态分析"
+      - "编码规范检查"
+      - "最佳实践建议"
+      - "重构建议"
+
+  reporter:
+    name: "Report Generator"
+    description: "生成分析报告的代理"
+    capabilities:
+      - "报告生成"
+      - "问题汇总"
+      - "改进建议"
+
+# 工作流步骤
+steps:
+  # 第一步：项目结构扫描
+  - name: "project_scan"
+    agent: "analyzer"
+    prompt: |
+      请扫描指定的C#项目目录，识别以下内容：
+      1. 项目结构和组织方式
+      2. 所有.cs文件的位置
+      3. 项目配置文件(.csproj, .sln等)
+      4. 代码文件的基本统计信息
+      
+      扫描目标：{project_path}
+      
+      请使用以下工具进行扫描：
+      - 使用list_dir查看目录结构
+      - 使用search_by_regex查找.cs文件
+      - 统计文件数量和代码行数
+    output: "project_structure"
+    tools_required:
+      - "list_dir"
+      - "search_by_regex"
+      - "view_files"
+
+  # 第二步：编码规范分析
+  - name: "coding_standards_check"
+    agent: "analyzer"
+    prompt: |
+      基于微软C#编码规范 (https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/coding-style/coding-conventions) 分析代码，检查以下方面：
+      
+      ## 命名约定
+      - 类名使用PascalCase
+      - 方法名使用PascalCase
+      - 属性名使用PascalCase
+      - 字段名使用camelCase（私有字段可选择_camelCase）
+      - 常量使用PascalCase
+      - 接口名以I开头
+      - 泛型参数以T开头
+      
+      ## 代码格式
+      - 缩进使用4个空格
+      - 大括号位置（Allman风格）
+      - 行长度限制
+      - 空行使用规范
+      
+      ## 语言特性使用
+      - 使用var的适当场景
+      - 使用语言关键字而非类型名（如string vs String）
+      - 异常处理最佳实践
+      - LINQ使用规范
+      - async/await使用规范
+      
+      ## 代码组织
+      - using语句组织
+      - 命名空间组织
+      - 类成员排序
+      - 访问修饰符使用
+      
+      分析输入：{project_structure}
+    output: "standards_analysis"
+    tools_required:
+      - "view_files"
+      - "search_by_regex"
+
+  # 第三步：代码质量评估
+  - name: "code_quality_assessment"
+    agent: "analyzer"
+    prompt: |
+      评估代码质量，重点关注：
+      
+      ## 复杂度分析
+      - 方法复杂度（圈复杂度）
+      - 类的职责单一性
+      - 继承层次深度
+      
+      ## 可维护性
+      - 代码重复度
+      - 方法长度
+      - 参数数量
+      - 嵌套深度
+      
+      ## 可读性
+      - 注释覆盖率
+      - 变量命名清晰度
+      - 方法命名准确性
+      
+      ## 性能考虑
+      - 字符串操作优化
+      - 集合使用效率
+      - 资源释放（IDisposable）
+      
+      分析输入：{standards_analysis}
+    output: "quality_assessment"
+    tools_required:
+      - "view_files"
+      - "search_codebase"
+
+  # 第四步：安全性检查
+  - name: "security_review"
+    agent: "analyzer"
+    prompt: |
+      进行安全性审查，检查：
+      
+      ## 输入验证
+      - 用户输入验证
+      - SQL注入防护
+      - XSS防护
+      
+      ## 数据保护
+      - 敏感数据处理
+      - 加密使用
+      - 日志安全
+      
+      ## 异常处理
+      - 异常信息泄露
+      - 资源泄露
+      - 错误处理完整性
+      
+      分析输入：{quality_assessment}
+    output: "security_review"
+    tools_required:
+      - "search_by_regex"
+      - "view_files"
+
+  # 第五步：生成改进建议
+  - name: "improvement_suggestions"
+    agent: "analyzer"
+    prompt: |
+      基于前面的分析结果，生成具体的改进建议：
+      
+      ## 优先级分类
+      - 高优先级：严重违反规范、安全问题
+      - 中优先级：可维护性问题、性能问题
+      - 低优先级：代码风格、注释改进
+      
+      ## 具体建议
+      - 问题描述
+      - 改进方案
+      - 代码示例（修改前后对比）
+      - 预期收益
+      
+      ## 工具推荐
+      - EditorConfig配置
+      - 代码分析器配置
+      - 自动化工具建议
+      
+      分析输入：{security_review}
+    output: "improvement_plan"
+    tools_required:
+      - "search_codebase"
+
+  # 第六步：生成分析报告
+  - name: "generate_report"
+    agent: "reporter"
+    prompt: |
+      生成完整的C#编码规范分析报告，包含：
+      
+      ## 执行摘要
+      - 项目概况
+      - 主要发现
+      - 总体评分
+      
+      ## 详细分析
+      - 编码规范符合度
+      - 代码质量评估
+      - 安全性评估
+      
+      ## 问题清单
+      - 按优先级分类的问题列表
+      - 每个问题的详细说明和位置
+      
+      ## 改进计划
+      - 短期改进建议（1-2周）
+      - 中期改进建议（1-2月）
+      - 长期改进建议（3-6月）
+      
+      ## 工具和配置
+      - 推荐的开发工具配置
+      - 代码分析规则配置
+      - CI/CD集成建议
+      
+      分析输入：{improvement_plan}
+    output: "final_report"
+    tools_required:
+      - "write_to_file"
+
+# 输出配置
+output:
+  format: "markdown"
+  sections:
+    - "executive_summary"
+    - "detailed_analysis"
+    - "issues_list"
+    - "improvement_plan"
+    - "tools_configuration"
+  file_naming: "csharp-standards-analysis-{timestamp}.md"
+  output_directory: "./reports/"
+
+# 配置选项
+config:
+  analysis_depth: "comprehensive"  # basic, standard, comprehensive
+  include_examples: true
+  generate_editorconfig: true
+  generate_ruleset: true
+  max_file_size: "1MB"
+  timeout: "30m"
+  
+# 微软编码规范参考
+references:
+  - name: "Microsoft C# Coding Conventions"
+    url: "https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/coding-style/coding-conventions"
+  - name: "Framework Design Guidelines"
+    url: "https://learn.microsoft.com/en-us/dotnet/standard/design-guidelines/"
+  - name: "C# Coding Standards"
+    url: "https://github.com/dotnet/runtime/blob/main/docs/coding-guidelines/coding-style.md"
+
+# 元数据
+metadata:
+  created: "2024-01-20"
+  updated: "2024-01-20"
+  compatible_versions: ["0.1.0+"]
+  required_tools:
+    - "list_dir"
+    - "view_files"
+    - "search_by_regex"
+    - "search_codebase"
+    - "write_to_file"
+  estimated_runtime: "15-30分钟"
+  supported_languages: ["C#"]

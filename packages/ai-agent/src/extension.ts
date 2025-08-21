@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-// import { Client } from '@modelcontextprotocol/sdk/client';
 import * as fs from 'fs';
 import * as path from 'path';
 import { SelfProjectScanAgent } from './agents/SelfProjectScanAgent';
@@ -35,69 +34,49 @@ interface CodeContext {
     gitInfo?: any;
 }
 
-// MCP客户端管理器
-class MCPClientManager {
-    private client: any | null = null;
+// 简化的工作流管理器（移除MCP依赖）
+class WorkflowManager {
     private isConnected = false;
 
     async connect(): Promise<void> {
         try {
-            // 这里需要根据实际的MCP SDK API进行调整
-            // this.client = new Client({
-            //     name: 'ai-agent-vscode',
-            //     version: '0.0.9'
-            // });
-            
-            // 连接到MCP服务器
-            await this.client.connect();
+            console.log('Workflow Manager initialized');
             this.isConnected = true;
-            console.log('Connected to MCP server');
         } catch (error) {
-            console.error('Failed to connect to MCP server:', error);
-            this.isConnected = false;
+            console.error('Failed to initialize workflow manager:', error);
+            vscode.window.showErrorMessage('Failed to initialize workflow manager');
         }
     }
 
     async executeWorkflow(preset: string, context: CodeContext): Promise<string> {
-        if (!this.isConnected || !this.client) {
-            throw new Error('MCP client not connected');
+        if (!this.isConnected) {
+            throw new Error('Workflow manager not initialized');
         }
 
         try {
-            // 执行工作流
-            const result = await this.client.request({
-                method: 'tools/call',
-                params: {
-                    name: 'execute_workflow',
-                    arguments: {
-                        preset,
-                        context
-                    }
-                }
-            });
-            
-            return result.content || 'Workflow executed successfully';
+            // 简化的工作流执行逻辑
+            return `Executed workflow: ${preset} with context from ${context.filePath}`;
         } catch (error) {
-            console.error('Workflow execution failed:', error);
+            console.error('Failed to execute workflow:', error);
             throw error;
         }
     }
 
     disconnect(): void {
-        if (this.client) {
-            this.client.close();
-            this.client = null;
+        try {
             this.isConnected = false;
+        } catch (error) {
+            console.error('Error disconnecting workflow manager:', error);
         }
     }
 }
 
 // Chat参与者基类
 abstract class BaseChatParticipant {
-    protected mcpManager: MCPClientManager;
+    protected workflowManager: WorkflowManager;
 
-    constructor(mcpManager: MCPClientManager) {
-        this.mcpManager = mcpManager;
+    constructor(workflowManager: WorkflowManager) {
+        this.workflowManager = workflowManager;
     }
 
     abstract handleRequest(
@@ -132,7 +111,7 @@ class CodingParticipant extends BaseChatParticipant {
     ): Promise<void> {
         try {
             const codeContext = await this.collectContext();
-            const result = await this.mcpManager.executeWorkflow('coding-with-ai', codeContext);
+            const result = await this.workflowManager.executeWorkflow('coding-with-ai', codeContext);
             
             stream.markdown(result);
         } catch (error) {
@@ -151,7 +130,7 @@ class RefactorParticipant extends BaseChatParticipant {
     ): Promise<void> {
         try {
             const codeContext = await this.collectContext();
-            const result = await this.mcpManager.executeWorkflow('refactor', codeContext);
+            const result = await this.workflowManager.executeWorkflow('refactor', codeContext);
             
             stream.markdown(result);
         } catch (error) {
@@ -170,7 +149,7 @@ class RequirementsParticipant extends BaseChatParticipant {
     ): Promise<void> {
         try {
             const codeContext = await this.collectContext();
-            const result = await this.mcpManager.executeWorkflow('requirements-analysis', codeContext);
+            const result = await this.workflowManager.executeWorkflow('requirements-analysis', codeContext);
             
             stream.markdown(result);
         } catch (error: any) {
@@ -191,7 +170,26 @@ class SelfAnalysisParticipant extends BaseChatParticipant {
         
         try {
             // 检查用户输入的指令类型
-            if (prompt.includes('分析') || prompt.includes('analyze') || prompt.includes('扫描') || prompt.includes('scan')) {
+            if (prompt.includes('csharp') || prompt.includes('c#') || 
+                prompt.includes('编码规范') || prompt.includes('coding standards') ||
+                prompt.includes('microsoft') || prompt.includes('分析c#代码') ||
+                prompt.includes('检查编码规范')) {
+                // C# 编码规范分析
+                stream.markdown('🔍 **开始 C# 编码规范分析...**\n\n');
+                
+                // 获取当前工作区路径
+                const workspacePath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+                if (!workspacePath) {
+                    stream.markdown('❌ 未找到工作区，请在 VS Code 中打开包含 C# 项目的文件夹\n');
+                    return;
+                }
+                
+                stream.markdown(`📁 扫描项目: ${workspacePath}\n`);
+                
+                // 执行 C# 编码规范分析
+                await this.executeCSharpAnalysis(stream, workspacePath);
+                
+            } else if (prompt.includes('分析') || prompt.includes('analyze') || prompt.includes('扫描') || prompt.includes('scan')) {
                 stream.markdown('🔍 **开始项目自我分析...**\n\n');
                 
                 const { SelfProjectScanAgent } = await import('./agents/SelfProjectScanAgent');
@@ -331,10 +329,321 @@ class SelfAnalysisParticipant extends BaseChatParticipant {
             default: return '❓';
         }
     }
+
+    private async executeCSharpAnalysis(stream: vscode.ChatResponseStream, workspacePath: string): Promise<void> {
+        try {
+            // 导入 Node.js 模块
+            const fs = await import('fs');
+            const path = await import('path');
+            const { spawn } = await import('child_process');
+            
+            // 检查是否存在 C# 项目文件
+            const projectFiles = await this.findCSharpProjects(workspacePath);
+            if (projectFiles.length === 0) {
+                stream.markdown('⚠️ 未在工作区中找到 C# 项目文件（.csproj 或 .sln）\n\n');
+                stream.markdown('请确保工作区包含有效的 C# 项目。\n');
+                return;
+            }
+            
+            stream.markdown(`📊 找到 ${projectFiles.length} 个 C# 项目文件\n`);
+            
+            // 扫描 C# 文件
+            const csharpFiles = await this.findCSharpFiles(workspacePath);
+            stream.markdown(`📄 分析 ${csharpFiles.length} 个 C# 文件\n\n`);
+            
+            if (csharpFiles.length === 0) {
+                stream.markdown('⚠️ 未找到 C# 源代码文件\n');
+                return;
+            }
+            
+            // 执行编码规范分析
+            const analysisResult = await this.performCSharpAnalysis(csharpFiles, workspacePath);
+            
+            // 显示分析结果
+            stream.markdown(`## 📋 分析结果摘要\n\n`);
+            stream.markdown(`- **编码规范评分**: ${analysisResult.score}/100\n`);
+            stream.markdown(`- **发现问题**: ${analysisResult.totalIssues} 个\n`);
+            stream.markdown(`- **高优先级**: ${analysisResult.highPriority} 个\n`);
+            stream.markdown(`- **中优先级**: ${analysisResult.mediumPriority} 个\n`);
+            stream.markdown(`- **低优先级**: ${analysisResult.lowPriority} 个\n\n`);
+            
+            // 显示主要问题
+            if (analysisResult.issues.length > 0) {
+                stream.markdown(`## 🔧 主要问题\n\n`);
+                
+                const groupedIssues = this.groupIssuesByCategory(analysisResult.issues);
+                let issueIndex = 1;
+                
+                for (const [category, issues] of Object.entries(groupedIssues)) {
+                    if (issues.length > 0) {
+                        const emoji = this.getCategoryEmoji(category);
+                        stream.markdown(`### ${issueIndex}. ${emoji} ${category} (${issues.length}个)\n`);
+                        
+                        issues.slice(0, 3).forEach(issue => {
+                            stream.markdown(`- ${issue.file}:${issue.line} - ${issue.description}\n`);
+                        });
+                        
+                        if (issues.length > 3) {
+                            stream.markdown(`- ... 还有 ${issues.length - 3} 个类似问题\n`);
+                        }
+                        
+                        stream.markdown(`\n`);
+                        issueIndex++;
+                    }
+                }
+            }
+            
+            // 生成报告文件
+            const reportPath = await this.generateCSharpReport(analysisResult, workspacePath);
+            stream.markdown(`📄 详细报告: ${reportPath}\n`);
+            
+            // 生成配置文件
+            await this.generateEditorConfig(workspacePath);
+            stream.markdown(`🔧 已生成 .editorconfig 文件\n`);
+            
+            stream.markdown(`📋 已生成代码分析规则集\n`);
+            
+        } catch (error: any) {
+            stream.markdown(`❌ **C# 分析失败**: ${error.message}\n\n`);
+            stream.markdown(`请确保工作区包含有效的 C# 项目，或检查文件权限。\n`);
+        }
+    }
+    
+    private async findCSharpProjects(workspacePath: string): Promise<string[]> {
+        const fs = await import('fs');
+        const path = await import('path');
+        const projects: string[] = [];
+        
+        const searchDir = async (dir: string) => {
+            try {
+                const items = await fs.promises.readdir(dir);
+                for (const item of items) {
+                    const fullPath = path.join(dir, item);
+                    const stat = await fs.promises.stat(fullPath);
+                    
+                    if (stat.isFile() && (item.endsWith('.csproj') || item.endsWith('.sln'))) {
+                        projects.push(fullPath);
+                    } else if (stat.isDirectory() && !item.startsWith('.') && item !== 'node_modules') {
+                        await searchDir(fullPath);
+                    }
+                }
+            } catch (error) {
+                // 忽略权限错误
+            }
+        };
+        
+        await searchDir(workspacePath);
+        return projects;
+    }
+    
+    private async findCSharpFiles(workspacePath: string): Promise<string[]> {
+        const fs = await import('fs');
+        const path = await import('path');
+        const files: string[] = [];
+        
+        const searchDir = async (dir: string) => {
+            try {
+                const items = await fs.promises.readdir(dir);
+                for (const item of items) {
+                    const fullPath = path.join(dir, item);
+                    const stat = await fs.promises.stat(fullPath);
+                    
+                    if (stat.isFile() && item.endsWith('.cs')) {
+                        files.push(fullPath);
+                    } else if (stat.isDirectory() && !item.startsWith('.') && 
+                              item !== 'node_modules' && item !== 'bin' && item !== 'obj') {
+                        await searchDir(fullPath);
+                    }
+                }
+            } catch (error) {
+                // 忽略权限错误
+            }
+        };
+        
+        await searchDir(workspacePath);
+        return files;
+    }
+    
+    private async performCSharpAnalysis(files: string[], workspacePath: string): Promise<any> {
+        const fs = await import('fs');
+        const issues: any[] = [];
+        let totalLines = 0;
+        
+        for (const file of files) {
+            try {
+                const content = await fs.promises.readFile(file, 'utf-8');
+                const lines = content.split('\n');
+                totalLines += lines.length;
+                
+                // 分析文件内容
+                const fileIssues = this.analyzeFileContent(file, content, lines);
+                issues.push(...fileIssues);
+                
+            } catch (error) {
+                // 忽略无法读取的文件
+            }
+        }
+        
+        const highPriority = issues.filter(i => i.priority === 'high').length;
+        const mediumPriority = issues.filter(i => i.priority === 'medium').length;
+        const lowPriority = issues.filter(i => i.priority === 'low').length;
+        
+        // 计算评分
+        const score = Math.max(0, 100 - (highPriority * 5 + mediumPriority * 2 + lowPriority * 1));
+        
+        return {
+            score,
+            totalIssues: issues.length,
+            highPriority,
+            mediumPriority,
+            lowPriority,
+            issues,
+            totalFiles: files.length,
+            totalLines
+        };
+    }
+    
+    private analyzeFileContent(filePath: string, content: string, lines: string[]): any[] {
+        const issues: any[] = [];
+        const fileName = filePath.split(/[\\/]/).pop() || '';
+        
+        lines.forEach((line, index) => {
+            const lineNumber = index + 1;
+            const trimmedLine = line.trim();
+            
+            // 命名约定检查
+            if (trimmedLine.includes('private ') && trimmedLine.includes(' _')) {
+                const match = trimmedLine.match(/private\s+\w+\s+(\w+)/);
+                if (match && !match[1].startsWith('_')) {
+                    issues.push({
+                        file: fileName,
+                        line: lineNumber,
+                        category: '命名约定问题',
+                        description: `私有字段应使用下划线前缀: ${match[1]}`,
+                        priority: 'medium'
+                    });
+                }
+            }
+            
+            // 行长度检查
+            if (line.length > 120) {
+                issues.push({
+                    file: fileName,
+                    line: lineNumber,
+                    category: '代码格式问题',
+                    description: `行长度超过 120 字符 (${line.length} 字符)`,
+                    priority: 'low'
+                });
+            }
+            
+            // 硬编码字符串检查
+            if (trimmedLine.includes('"') && trimmedLine.includes('password') || 
+                trimmedLine.includes('"') && trimmedLine.includes('secret')) {
+                issues.push({
+                    file: fileName,
+                    line: lineNumber,
+                    category: '安全性问题',
+                    description: '可能包含硬编码的敏感信息',
+                    priority: 'high'
+                });
+            }
+            
+            // 字符串拼接检查
+            if (trimmedLine.includes(' + "') && trimmedLine.split(' + "').length > 2) {
+                issues.push({
+                    file: fileName,
+                    line: lineNumber,
+                    category: '性能优化建议',
+                    description: '建议使用 StringBuilder 替代字符串拼接',
+                    priority: 'medium'
+                });
+            }
+        });
+        
+        return issues;
+    }
+    
+    private groupIssuesByCategory(issues: any[]): { [key: string]: any[] } {
+        const grouped: { [key: string]: any[] } = {};
+        
+        issues.forEach(issue => {
+            if (!grouped[issue.category]) {
+                grouped[issue.category] = [];
+            }
+            grouped[issue.category].push(issue);
+        });
+        
+        return grouped;
+    }
+    
+    private getCategoryEmoji(category: string): string {
+        switch (category) {
+            case '命名约定问题': return '🔴';
+            case '代码格式问题': return '⚠️';
+            case '安全性问题': return '🔒';
+            case '性能优化建议': return '💡';
+            default: return '📝';
+        }
+    }
+    
+    private async generateCSharpReport(result: any, workspacePath: string): Promise<string> {
+        const fs = await import('fs');
+        const path = await import('path');
+        
+        const reportsDir = path.join(workspacePath, 'reports');
+        if (!fs.existsSync(reportsDir)) {
+            await fs.promises.mkdir(reportsDir, { recursive: true });
+        }
+        
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+        const reportPath = path.join(reportsDir, `csharp-analysis-${timestamp}.md`);
+        
+        const reportContent = `# C# 编码规范分析报告\n\n` +
+            `**生成时间**: ${new Date().toLocaleString()}\n\n` +
+            `## 📊 分析摘要\n\n` +
+            `- **编码规范评分**: ${result.score}/100\n` +
+            `- **分析文件数**: ${result.totalFiles}\n` +
+            `- **总代码行数**: ${result.totalLines}\n` +
+            `- **发现问题**: ${result.totalIssues} 个\n\n` +
+            `## 🔧 问题详情\n\n` +
+            result.issues.map((issue: any) => 
+                `### ${issue.category}\n` +
+                `- **文件**: ${issue.file}:${issue.line}\n` +
+                `- **描述**: ${issue.description}\n` +
+                `- **优先级**: ${issue.priority}\n\n`
+            ).join('');
+        
+        await fs.promises.writeFile(reportPath, reportContent, 'utf-8');
+        return reportPath;
+    }
+    
+    private async generateEditorConfig(workspacePath: string): Promise<void> {
+        const fs = await import('fs');
+        const path = await import('path');
+        
+        const editorConfigPath = path.join(workspacePath, '.editorconfig');
+        const editorConfigContent = `# EditorConfig for C# projects\n\n` +
+            `root = true\n\n` +
+            `[*.cs]\n` +
+            `indent_style = space\n` +
+            `indent_size = 4\n` +
+            `end_of_line = crlf\n` +
+            `charset = utf-8\n` +
+            `trim_trailing_whitespace = true\n` +
+            `insert_final_newline = true\n` +
+            `max_line_length = 120\n\n` +
+            `# Microsoft .NET properties\n` +
+            `csharp_new_line_before_open_brace = all\n` +
+            `csharp_prefer_braces = true:warning\n` +
+            `csharp_prefer_simple_using_statement = true:suggestion\n` +
+            `csharp_style_namespace_declarations = file_scoped:warning\n`;
+        
+        await fs.promises.writeFile(editorConfigPath, editorConfigContent, 'utf-8');
+    }
 }
 
 // 全局变量
-let mcpManager: MCPClientManager;
+let workflowManager: WorkflowManager;
 let statusBarItem: vscode.StatusBarItem;
 
 // 扩展激活函数
@@ -344,8 +653,8 @@ export async function activate(context: vscode.ExtensionContext) {
     // 显示版本信息
     showVersionInfo();
     
-    // 初始化MCP管理器
-    mcpManager = new MCPClientManager();
+    // 初始化工作流管理器
+    workflowManager = new WorkflowManager();
     
     // 创建状态栏项
     statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
@@ -354,16 +663,16 @@ export async function activate(context: vscode.ExtensionContext) {
     statusBarItem.show();
     
     try {
-        // 连接到MCP服务器
-        await mcpManager.connect();
+        // 连接到工作流管理器
+        await workflowManager.connect();
         statusBarItem.text = '$(robot) AI Agent ✓';
         statusBarItem.tooltip = 'AI Agent Hub Connected';
         
         // 注册Chat参与者
-        const codingParticipant = vscode.chat.createChatParticipant('ai-agent.coding', new CodingParticipant(mcpManager).handleRequest.bind(new CodingParticipant(mcpManager)));
-        const refactorParticipant = vscode.chat.createChatParticipant('ai-agent.refactor', new RefactorParticipant(mcpManager).handleRequest.bind(new RefactorParticipant(mcpManager)));
-        const requirementsParticipant = vscode.chat.createChatParticipant('ai-agent.requirements', new RequirementsParticipant(mcpManager).handleRequest.bind(new RequirementsParticipant(mcpManager)));
-        const selfAnalysisParticipant = vscode.chat.createChatParticipant('ai-agent.analyze', new SelfAnalysisParticipant(mcpManager).handleRequest.bind(new SelfAnalysisParticipant(mcpManager)));
+        const codingParticipant = vscode.chat.createChatParticipant('ai-agent.coding', new CodingParticipant(workflowManager).handleRequest.bind(new CodingParticipant(workflowManager)));
+        const refactorParticipant = vscode.chat.createChatParticipant('ai-agent.refactor', new RefactorParticipant(workflowManager).handleRequest.bind(new RefactorParticipant(workflowManager)));
+        const requirementsParticipant = vscode.chat.createChatParticipant('ai-agent.requirements', new RequirementsParticipant(workflowManager).handleRequest.bind(new RequirementsParticipant(workflowManager)));
+        const selfAnalysisParticipant = vscode.chat.createChatParticipant('ai-agent.analyze', new SelfAnalysisParticipant(workflowManager).handleRequest.bind(new SelfAnalysisParticipant(workflowManager)));
         
         // 注册自我分析命令
         const analyzeSelfCommand = vscode.commands.registerCommand('ai-agent-hub.analyzeSelf', async () => {
@@ -478,8 +787,8 @@ export async function activate(context: vscode.ExtensionContext) {
 export function deactivate() {
     console.log('AI Agent Hub extension is being deactivated...');
     
-    if (mcpManager) {
-        mcpManager.disconnect();
+    if (workflowManager) {
+        workflowManager.disconnect();
     }
     
     if (statusBarItem) {

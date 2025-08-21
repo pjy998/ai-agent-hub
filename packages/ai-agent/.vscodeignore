@@ -2,8 +2,9 @@
 out/test/**
 .vscode-test/**
 
-# Node modules
+# Node modules (exclude dev dependencies but include runtime dependencies)
 node_modules/**
+!node_modules/@modelcontextprotocol/**
 
 # Source files
 src/**

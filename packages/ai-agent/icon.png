@@ -1,0 +1,37 @@
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#007ACC;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0099FF;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background circle -->
+  <circle cx="64" cy="64" r="60" fill="url(#gradient)" stroke="#ffffff" stroke-width="2"/>
+  
+  <!-- AI Brain icon -->
+  <g transform="translate(32, 32)">
+    <!-- Brain outline -->
+    <path d="M32 8C40 8 48 16 48 24C52 24 56 28 56 32C56 36 52 40 48 40C48 48 40 56 32 56C24 56 16 48 16 40C12 40 8 36 8 32C8 28 12 24 16 24C16 16 24 8 32 8Z" 
+          fill="#ffffff" stroke="#007ACC" stroke-width="2"/>
+    
+    <!-- Neural connections -->
+    <circle cx="24" cy="24" r="2" fill="#007ACC"/>
+    <circle cx="40" cy="24" r="2" fill="#007ACC"/>
+    <circle cx="32" cy="32" r="2" fill="#007ACC"/>
+    <circle cx="24" cy="40" r="2" fill="#007ACC"/>
+    <circle cx="40" cy="40" r="2" fill="#007ACC"/>
+    
+    <!-- Connection lines -->
+    <line x1="24" y1="24" x2="32" y2="32" stroke="#007ACC" stroke-width="1"/>
+    <line x1="40" y1="24" x2="32" y2="32" stroke="#007ACC" stroke-width="1"/>
+    <line x1="32" y1="32" x2="24" y2="40" stroke="#007ACC" stroke-width="1"/>
+    <line x1="32" y1="32" x2="40" y2="40" stroke="#007ACC" stroke-width="1"/>
+  </g>
+  
+  <!-- Code brackets -->
+  <text x="20" y="100" font-family="monospace" font-size="24" fill="#ffffff" font-weight="bold">&lt;/&gt;</text>
+  
+  <!-- Agent indicator -->
+  <circle cx="100" cy="28" r="8" fill="#00FF88" stroke="#ffffff" stroke-width="2"/>
+</svg>
