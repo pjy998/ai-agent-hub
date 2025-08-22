@@ -1,0 +1,288 @@
+# 语言模板注册表
+# 定义支持的编程语言和扩展配置
+
+languages:
+  # 内置支持的语言
+  csharp:
+    displayName: "C#"
+    fileExtensions: [".cs"]
+    enabled: true
+    priority: 100
+    category: "compiled"
+    
+  java:
+    displayName: "Java"
+    fileExtensions: [".java"]
+    enabled: true
+    priority: 100
+    category: "compiled"
+    
+  python:
+    displayName: "Python"
+    fileExtensions: [".py", ".pyw"]
+    enabled: true
+    priority: 100
+    category: "interpreted"
+    
+  javascript:
+    displayName: "JavaScript"
+    fileExtensions: [".js", ".mjs"]
+    enabled: true
+    priority: 100
+    category: "interpreted"
+    
+  typescript:
+    displayName: "TypeScript"
+    fileExtensions: [".ts", ".tsx"]
+    enabled: true
+    priority: 100
+    category: "compiled"
+    
+  vue:
+    displayName: "Vue.js"
+    fileExtensions: [".vue"]
+    enabled: true
+    priority: 90
+    category: "framework"
+    
+  go:
+    displayName: "Go"
+    fileExtensions: [".go"]
+    enabled: true
+    priority: 100
+    category: "compiled"
+    
+  rust:
+    displayName: "Rust"
+    fileExtensions: [".rs"]
+    enabled: true
+    priority: 100
+    category: "compiled"
+    
+  # 可扩展的语言支持
+  cpp:
+    displayName: "C++"
+    fileExtensions: [".cpp", ".cxx", ".cc", ".hpp", ".h"]
+    enabled: false
+    priority: 90
+    category: "compiled"
+    templatePath: "languages/cpp.yaml"
+    
+  c:
+    displayName: "C"
+    fileExtensions: [".c", ".h"]
+    enabled: false
+    priority: 90
+    category: "compiled"
+    templatePath: "languages/c.yaml"
+    
+  php:
+    displayName: "PHP"
+    fileExtensions: [".php", ".phtml"]
+    enabled: false
+    priority: 80
+    category: "interpreted"
+    templatePath: "languages/php.yaml"
+    
+  ruby:
+    displayName: "Ruby"
+    fileExtensions: [".rb", ".rbw"]
+    enabled: false
+    priority: 80
+    category: "interpreted"
+    templatePath: "languages/ruby.yaml"
+    
+  swift:
+    displayName: "Swift"
+    fileExtensions: [".swift"]
+    enabled: false
+    priority: 80
+    category: "compiled"
+    templatePath: "languages/swift.yaml"
+    
+  kotlin:
+    displayName: "Kotlin"
+    fileExtensions: [".kt", ".kts"]
+    enabled: false
+    priority: 80
+    category: "compiled"
+    templatePath: "languages/kotlin.yaml"
+    
+  scala:
+    displayName: "Scala"
+    fileExtensions: [".scala", ".sc"]
+    enabled: false
+    priority: 70
+    category: "compiled"
+    templatePath: "languages/scala.yaml"
+    
+  dart:
+    displayName: "Dart"
+    fileExtensions: [".dart"]
+    enabled: false
+    priority: 70
+    category: "compiled"
+    templatePath: "languages/dart.yaml"
+    
+  flutter:
+    displayName: "Flutter"
+    fileExtensions: [".dart"]
+    enabled: false
+    priority: 60
+    category: "framework"
+    templatePath: "languages/flutter.yaml"
+    
+  react:
+    displayName: "React"
+    fileExtensions: [".jsx", ".tsx"]
+    enabled: false
+    priority: 60
+    category: "framework"
+    templatePath: "languages/react.yaml"
+    
+  angular:
+    displayName: "Angular"
+    fileExtensions: [".ts", ".html", ".scss"]
+    enabled: false
+    priority: 60
+    category: "framework"
+    templatePath: "languages/angular.yaml"
+    
+  nodejs:
+    displayName: "Node.js"
+    fileExtensions: [".js", ".ts", ".mjs"]
+    enabled: false
+    priority: 60
+    category: "runtime"
+    templatePath: "languages/nodejs.yaml"
+    
+  deno:
+    displayName: "Deno"
+    fileExtensions: [".js", ".ts", ".jsx", ".tsx"]
+    enabled: false
+    priority: 50
+    category: "runtime"
+    templatePath: "languages/deno.yaml"
+    
+  # 数据库和查询语言
+  sql:
+    displayName: "SQL"
+    fileExtensions: [".sql"]
+    enabled: false
+    priority: 70
+    category: "query"
+    templatePath: "languages/sql.yaml"
+    
+  # 标记语言
+  html:
+    displayName: "HTML"
+    fileExtensions: [".html", ".htm"]
+    enabled: false
+    priority: 60
+    category: "markup"
+    templatePath: "languages/html.yaml"
+    
+  css:
+    displayName: "CSS"
+    fileExtensions: [".css", ".scss", ".sass", ".less"]
+    enabled: false
+    priority: 60
+    category: "style"
+    templatePath: "languages/css.yaml"
+    
+  # 配置和脚本语言
+  yaml:
+    displayName: "YAML"
+    fileExtensions: [".yaml", ".yml"]
+    enabled: false
+    priority: 50
+    category: "config"
+    templatePath: "languages/yaml.yaml"
+    
+  json:
+    displayName: "JSON"
+    fileExtensions: [".json"]
+    enabled: false
+    priority: 50
+    category: "config"
+    templatePath: "languages/json.yaml"
+    
+  xml:
+    displayName: "XML"
+    fileExtensions: [".xml"]
+    enabled: false
+    priority: 50
+    category: "markup"
+    templatePath: "languages/xml.yaml"
+    
+  bash:
+    displayName: "Bash"
+    fileExtensions: [".sh", ".bash"]
+    enabled: false
+    priority: 60
+    category: "script"
+    templatePath: "languages/bash.yaml"
+    
+  powershell:
+    displayName: "PowerShell"
+    fileExtensions: [".ps1", ".psm1"]
+    enabled: false
+    priority: 60
+    category: "script"
+    templatePath: "languages/powershell.yaml"
+
+# 插件配置
+plugins:
+  # 示例插件配置
+  example-language-plugin:
+    path: "plugins/example-language.js"
+    enabled: false
+    version: "1.0.0"
+    description: "示例语言插件"
+    
+# 扩展配置
+extensions:
+  # 自动检测配置
+  autoDetection:
+    enabled: true
+    confidence: 0.8
+    fallbackLanguage: "javascript"
+    
+  # 框架检测
+  frameworkDetection:
+    enabled: true
+    patterns:
+      vue:
+        - "vue.config.js"
+        - "package.json:vue"
+      react:
+        - "package.json:react"
+        - "src/App.jsx"
+      angular:
+        - "angular.json"
+        - "package.json:@angular"
+      flutter:
+        - "pubspec.yaml"
+        - "lib/main.dart"
+        
+  # 自定义规则目录
+  customRulesDirectories:
+    - "./custom-rules"
+    - "~/.ai-agent-hub/rules"
+    
+  # 模板继承
+  templateInheritance:
+    enabled: true
+    allowMultipleInheritance: false
+    
+# 验证配置
+validation:
+  strictMode: false
+  requireAllFields: false
+  allowCustomFields: true
+  
+# 性能配置
+performance:
+  cacheTemplates: true
+  lazyLoading: true
+  maxConcurrentLoads: 5

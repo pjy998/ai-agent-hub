@@ -2,6 +2,74 @@
 
 All notable changes to the "AI Agent Hub" extension will be documented in this file.
 
+## [0.0.18] - 2025-01-27
+
+### 🔧 Fixed
+- **Monorepo Dependency Resolution**: Fixed `yaml` module resolution in monorepo environments
+  - Updated `.vscodeignore` to include `!../../node_modules/yaml/**` for proper dependency packaging
+  - Resolved "Cannot find module 'yaml'" errors in remote VS Code environments
+  - Ensured Chat participant activation works correctly in monorepo structures
+
+### 🛠️ Technical Details
+- **Root Cause**: In monorepo structures, dependencies are hoisted to the root `node_modules`, but `.vscodeignore` was excluding all parent directories
+- **Solution**: Modified `.vscodeignore` to specifically include the hoisted `yaml` dependency from root `node_modules`
+- **Impact**: Extension now works correctly in both standalone and monorepo project structures
+
+## [0.0.17] - 2024-12-21
+
+### 🔧 Fixed
+- **扩展打包问题**: 修复了 `.vscodeignore` 配置导致 `yaml` 依赖未被包含在扩展包中的问题
+  - 在 `.vscodeignore` 中添加了 `!node_modules/yaml/**` 规则
+  - 确保 `yaml` 运行时依赖被正确打包到 VSIX 文件中
+  - 解决了远程环境中仍然出现 "Cannot find module 'yaml'" 错误的根本原因
+- **远程环境兼容性**: 确保扩展在 VS Code Server 环境中正确加载所有依赖
+
+### 📚 Documentation
+- 更新了依赖打包最佳实践和 `.vscodeignore` 配置指南
+
+## [0.0.16] - 2024-12-21
+
+### 🔧 Fixed
+- **依赖管理问题**: 修复了缺少 `yaml` 运行时依赖导致的模块解析错误
+  - 在 package.json 中添加了 `yaml: "^2.3.4"` 作为运行时依赖
+  - 解决了 `@ai-agent.config` 命令返回 "unclear" 错误的问题
+  - 修复了控制台中 "Cannot find module 'yaml'" 的错误
+- **扩展激活**: 确保 Chat 参与者在远程环境中正确加载和激活
+
+### 📚 Documentation
+- 新增 `CONSOLE-ERROR-ANALYSIS.md` - 详细的错误分析和解决方案文档
+- 更新了依赖管理最佳实践和预防措施
+
+## [0.0.15] - 2024-12-21
+
+### ✨ Added
+- **扩展语言支持系统**: 全新的可扩展多语言支持架构
+  - 可扩展语言管理器 (ExtensibleLanguageManager)
+  - 支持三种语言扩展方式：内置模板、YAML配置文件、JavaScript插件
+  - 动态语言模板加载和插件系统
+  - AI驱动的语言配置生成
+- **增强的Copilot Chat集成**: 新增语言管理命令
+  - `@ai-agent.config plugins` - 管理语言插件
+  - `@ai-agent.config stats` - 显示语言支持统计
+  - `@ai-agent.config reload` - 重新加载所有模板和插件
+  - `@ai-agent.config custom "为 [语言名] 生成配置"` - AI动态生成新语言支持
+- **语言配置示例**: 
+  - C++ 语言配置模板 (cpp.yaml)
+  - Lua 语言插件示例 (example-language-plugin.js)
+  - 语言注册表配置 (registry.yaml)
+- **完整文档**: 扩展语言支持指南 (extending-language-support.md)
+
+### 🔧 Improved
+- **配置验证**: 增强的YAML配置文件验证机制
+- **插件系统**: 完整的插件生命周期管理（初始化、清理、依赖验证）
+- **AI集成**: 通过Copilot Chat智能生成语言特定的分析规则
+- **向后兼容**: 保持与现有内置语言模板的完全兼容
+
+### 🛠️ Technical
+- **TypeScript**: 修复所有类型定义和编译错误
+- **模块化设计**: 可扩展的语言模板管理架构
+- **动态加载**: 支持运行时加载新的语言模板和插件
+
 ## [0.1.0] - 2024-12-20
 
 ### ✨ Added

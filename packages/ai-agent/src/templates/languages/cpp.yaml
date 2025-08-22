@@ -1,0 +1,219 @@
+# C++ 语言分析模板
+language: cpp
+displayName: "C++"
+fileExtensions: [".cpp", ".cxx", ".cc", ".hpp", ".h", ".hxx"]
+
+analysisRules:
+  - name: "CamelCaseClasses"
+    description: "类名应使用大驼峰命名法"
+    pattern: "^class\s+[A-Z][a-zA-Z0-9]*"
+    severity: "warning"
+    category: "naming"
+    message: "类名应以大写字母开头并使用驼峰命名法"
+    suggestion: "将类名改为大驼峰格式，如 MyClass"
+    
+  - name: "SnakeCaseFunctions"
+    description: "函数名应使用下划线命名法"
+    pattern: "^[a-z][a-z0-9_]*\s*\("
+    severity: "info"
+    category: "naming"
+    message: "函数名建议使用下划线命名法"
+    suggestion: "使用 snake_case 格式，如 my_function"
+    
+  - name: "ConstCorrectness"
+    description: "检查const正确性"
+    pattern: "const.*&|&.*const"
+    severity: "warning"
+    category: "best-practice"
+    message: "确保正确使用const引用"
+    suggestion: "使用 const Type& 而不是 Type& const"
+    
+  - name: "MemoryLeakCheck"
+    description: "检查潜在的内存泄漏"
+    pattern: "new\s+(?!.*delete)"
+    severity: "error"
+    category: "security"
+    message: "发现new操作但未找到对应的delete"
+    suggestion: "确保每个new都有对应的delete，或使用智能指针"
+    
+  - name: "HeaderGuards"
+    description: "头文件应有包含保护"
+    pattern: "#ifndef.*#define.*#endif"
+    severity: "warning"
+    category: "structure"
+    message: "头文件应使用包含保护或#pragma once"
+    suggestion: "添加 #pragma once 或使用传统的包含保护"
+
+codingStandards:
+  - name: "RAII原则"
+    description: "资源获取即初始化"
+    rules:
+      - "使用构造函数获取资源"
+      - "使用析构函数释放资源"
+      - "避免裸指针，优先使用智能指针"
+      - "确保异常安全"
+    examples:
+      - good: |
+          class FileHandler {
+              std::unique_ptr<FILE, decltype(&fclose)> file;
+          public:
+              FileHandler(const char* filename) 
+                  : file(fopen(filename, "r"), &fclose) {
+                  if (!file) throw std::runtime_error("Failed to open file");
+              }
+          };
+        bad: |
+          FILE* file = fopen("test.txt", "r");
+          // 可能忘记调用 fclose
+        explanation: "使用RAII确保资源自动管理"
+        
+  - name: "现代C++特性"
+    description: "使用C++11及以后的现代特性"
+    rules:
+      - "使用auto关键字进行类型推导"
+      - "使用范围for循环"
+      - "使用智能指针替代裸指针"
+      - "使用nullptr替代NULL"
+    examples:
+      - good: |
+          auto numbers = std::vector<int>{1, 2, 3, 4, 5};
+          for (const auto& num : numbers) {
+              std::cout << num << std::endl;
+          }
+        bad: |
+          std::vector<int> numbers;
+          for (int i = 0; i < numbers.size(); ++i) {
+              std::cout << numbers[i] << std::endl;
+          }
+        explanation: "现代C++语法更简洁且安全"
+
+securityChecks:
+  - name: "缓冲区溢出检查"
+    description: "检查可能的缓冲区溢出"
+    riskLevel: "high"
+    patterns:
+      - "strcpy\s*\("
+      - "strcat\s*\("
+      - "sprintf\s*\("
+      - "gets\s*\("
+    mitigation: "使用安全的字符串函数如strncpy, strncat, snprintf"
+    
+  - name: "整数溢出检查"
+    description: "检查潜在的整数溢出"
+    riskLevel: "medium"
+    patterns:
+      - "\+\+.*\[.*\]"
+      - ".*\[.*\+\+.*\]"
+    mitigation: "在数组访问前检查边界"
+    
+  - name: "空指针解引用"
+    description: "检查空指针解引用"
+    riskLevel: "high"
+    patterns:
+      - "\*.*(?<!if\s*\()(?<!assert\s*\()"
+    mitigation: "在解引用前检查指针是否为空"
+
+performanceChecks:
+  - name: "不必要的拷贝"
+    description: "检查不必要的对象拷贝"
+    impact: "medium"
+    patterns:
+      - "std::vector.*=.*std::vector"
+      - "std::string.*=.*std::string"
+    optimization: "使用移动语义或引用传递"
+    
+  - name: "循环中的重复计算"
+    description: "检查循环中的重复计算"
+    impact: "high"
+    patterns:
+      - "for.*\.size\(\)"
+      - "while.*\.length\(\)"
+    optimization: "将计算结果缓存在循环外"
+    
+  - name: "虚函数调用优化"
+    description: "检查可以优化的虚函数调用"
+    impact: "low"
+    patterns:
+      - "virtual.*override"
+    optimization: "考虑使用final关键字或模板特化"
+
+# 框架特定配置
+frameworkSpecific:
+  qt:
+    rules:
+      - name: "Qt信号槽连接"
+        description: "检查Qt信号槽连接"
+        pattern: "connect\s*\("
+        severity: "info"
+        category: "framework"
+        message: "确保信号槽连接正确"
+    standards:
+      - name: "Qt编码规范"
+        description: "Qt特定的编码规范"
+        rules:
+          - "使用Q_OBJECT宏"
+          - "信号应为public slots"
+          - "使用Qt容器类"
+          
+  boost:
+    rules:
+      - name: "Boost库使用"
+        description: "检查Boost库的正确使用"
+        pattern: "boost::"
+        severity: "info"
+        category: "framework"
+        message: "确保正确使用Boost库"
+    standards:
+      - name: "Boost最佳实践"
+        description: "Boost库最佳实践"
+        rules:
+          - "优先使用标准库而非Boost"
+          - "正确处理Boost异常"
+          - "使用Boost智能指针"
+
+# 编译器特定配置
+compilerSpecific:
+  gcc:
+    flags: ["-Wall", "-Wextra", "-Wpedantic", "-std=c++17"]
+    warnings:
+      - "unused-variable"
+      - "unused-parameter"
+      - "sign-compare"
+      
+  clang:
+    flags: ["-Wall", "-Wextra", "-Wpedantic", "-std=c++17"]
+    warnings:
+      - "unused-variable"
+      - "unused-parameter"
+      - "sign-compare"
+      
+  msvc:
+    flags: ["/W4", "/std:c++17"]
+    warnings:
+      - "C4100"  # unreferenced formal parameter
+      - "C4101"  # unreferenced local variable
+
+# 工具集成
+toolIntegration:
+  staticAnalysis:
+    - name: "cppcheck"
+      command: "cppcheck --enable=all"
+      description: "C++静态分析工具"
+      
+    - name: "clang-tidy"
+      command: "clang-tidy"
+      description: "Clang静态分析工具"
+      
+  formatting:
+    - name: "clang-format"
+      command: "clang-format"
+      description: "C++代码格式化工具"
+      
+  testing:
+    - name: "Google Test"
+      framework: "gtest"
+      description: "Google C++测试框架"
+      
+    - name: "Catch2"
+      framework: "catch2"
+      description: "现代C++测试框架"

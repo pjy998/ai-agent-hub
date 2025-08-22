@@ -1,0 +1,251 @@
+name: "Java代码分析配置"
+description: "针对Java项目的综合代码分析配置，包含代码质量、安全性和性能检查"
+version: "1.0.0"
+author: "AI Agent Hub"
+
+# 上下文配置
+context:
+  include_files:
+    - "**/*.java"
+    - "**/pom.xml"
+    - "**/build.gradle"
+    - "**/application.properties"
+    - "**/application.yml"
+  exclude_files:
+    - "**/target/**"
+    - "**/build/**"
+    - "**/.git/**"
+    - "**/node_modules/**"
+  max_file_size: 1048576  # 1MB
+  scan_depth: 10
+
+# 分析步骤
+steps:
+  - name: "项目结构分析"
+    description: "分析Java项目的整体结构和架构"
+    prompt: |
+      请分析这个Java项目的结构，包括：
+      1. 项目类型（Spring Boot、Maven、Gradle等）
+      2. 包结构和模块划分
+      3. 主要依赖和框架
+      4. 配置文件分析
+      
+      请提供项目结构的总体评估和改进建议。
+    context:
+      include_files:
+        - "**/pom.xml"
+        - "**/build.gradle"
+        - "**/src/main/java/**/*.java"
+      max_files: 50
+
+  - name: "代码质量检查"
+    description: "检查Java代码的质量和最佳实践"
+    prompt: |
+      请对Java代码进行质量检查，重点关注：
+      1. 命名规范（类名、方法名、变量名）
+      2. 代码复杂度和可读性
+      3. 设计模式的使用
+      4. SOLID原则的遵循
+      5. 异常处理机制
+      6. 注释和文档完整性
+      
+      请为每个问题提供具体的代码位置和改进建议。
+    context:
+      include_files:
+        - "**/src/main/java/**/*.java"
+      exclude_files:
+        - "**/test/**"
+      max_files: 100
+
+  - name: "安全性分析"
+    description: "检查Java代码中的安全漏洞和风险"
+    prompt: |
+      请对Java代码进行安全性分析，检查以下安全问题：
+      1. SQL注入风险
+      2. XSS跨站脚本攻击
+      3. 敏感信息泄露（密码、API密钥等）
+      4. 输入验证不足
+      5. 权限控制缺陷
+      6. 序列化安全问题
+      7. 依赖库安全漏洞
+      
+      请为每个安全问题提供风险等级和修复建议。
+    context:
+      include_files:
+        - "**/src/main/java/**/*.java"
+        - "**/application.properties"
+        - "**/application.yml"
+      max_files: 80
+
+  - name: "性能优化分析"
+    description: "分析Java代码的性能问题和优化机会"
+    prompt: |
+      请分析Java代码的性能问题，重点关注：
+      1. 数据库查询优化（N+1问题、索引使用等）
+      2. 内存使用优化（对象创建、缓存策略等）
+      3. 并发处理优化（线程安全、锁使用等）
+      4. 算法复杂度分析
+      5. I/O操作优化
+      6. JVM参数调优建议
+      
+      请为每个性能问题提供具体的优化方案和预期效果。
+    context:
+      include_files:
+        - "**/src/main/java/**/*.java"
+      exclude_files:
+        - "**/test/**"
+      max_files: 60
+
+  - name: "测试覆盖率分析"
+    description: "分析测试代码的覆盖率和质量"
+    prompt: |
+      请分析Java项目的测试情况：
+      1. 单元测试覆盖率
+      2. 集成测试完整性
+      3. 测试代码质量
+      4. Mock使用情况
+      5. 测试数据管理
+      6. 测试自动化程度
+      
+      请提供测试改进建议和最佳实践。
+    context:
+      include_files:
+        - "**/src/test/java/**/*.java"
+        - "**/src/main/java/**/*.java"
+      max_files: 100
+
+  - name: "依赖管理分析"
+    description: "分析项目依赖的合理性和安全性"
+    prompt: |
+      请分析Java项目的依赖管理：
+      1. 依赖版本是否最新和兼容
+      2. 是否存在依赖冲突
+      3. 未使用的依赖识别
+      4. 依赖的安全漏洞检查
+      5. 依赖许可证合规性
+      6. 依赖大小和性能影响
+      
+      请提供依赖优化建议。
+    context:
+      include_files:
+        - "**/pom.xml"
+        - "**/build.gradle"
+        - "**/gradle.properties"
+      max_files: 20
+
+# 输出配置
+output:
+  format: "markdown"
+  save_to: "java-analysis-report.md"
+  include_summary: true
+  include_metrics: true
+  sections:
+    - "项目概览"
+    - "代码质量评估"
+    - "安全性分析"
+    - "性能优化建议"
+    - "测试覆盖率报告"
+    - "依赖管理建议"
+    - "总体评分和改进计划"
+
+# 分析规则配置
+rules:
+  code_quality:
+    - name: "命名规范检查"
+      severity: "warning"
+      pattern: "^[A-Z][a-zA-Z0-9]*$"  # 类名规范
+      description: "类名应使用大驼峰命名法"
+    
+    - name: "方法长度检查"
+      severity: "warning"
+      threshold: 50
+      description: "方法行数不应超过50行"
+    
+    - name: "循环复杂度检查"
+      severity: "error"
+      threshold: 10
+      description: "方法的循环复杂度不应超过10"
+
+  security:
+    - name: "SQL注入检查"
+      severity: "error"
+      patterns:
+        - "Statement.*execute.*\+"
+        - "createQuery.*\+"
+      description: "检测潜在的SQL注入风险"
+    
+    - name: "硬编码密码检查"
+      severity: "error"
+      patterns:
+        - "password\s*=\s*[\"'][^\"']+[\"']"
+        - "pwd\s*=\s*[\"'][^\"']+[\"']"
+      description: "检测硬编码的密码"
+
+  performance:
+    - name: "字符串拼接检查"
+      severity: "warning"
+      pattern: "String.*\+.*\+"
+      description: "建议使用StringBuilder进行字符串拼接"
+    
+    - name: "集合初始化检查"
+      severity: "info"
+      pattern: "new ArrayList\(\)"
+      description: "建议指定集合的初始容量"
+
+# 报告模板
+report_template: |
+  # Java项目代码分析报告
+  
+  ## 📊 项目概览
+  
+  **项目名称**: {{project_name}}
+  **分析时间**: {{analysis_date}}
+  **代码行数**: {{total_lines}}
+  **文件数量**: {{file_count}}
+  
+  ## 🎯 总体评分
+  
+  | 维度 | 评分 | 状态 |
+  |------|------|------|
+  | 代码质量 | {{quality_score}}/100 | {{quality_status}} |
+  | 安全性 | {{security_score}}/100 | {{security_status}} |
+  | 性能 | {{performance_score}}/100 | {{performance_status}} |
+  | 测试覆盖率 | {{test_coverage}}% | {{test_status}} |
+  
+  ## 📋 详细分析结果
+  
+  {{analysis_details}}
+  
+  ## 🚀 改进建议
+  
+  {{improvement_suggestions}}
+  
+  ## 📈 下一步行动计划
+  
+  {{action_plan}}
+
+# 配置元数据
+metadata:
+  language: "java"
+  framework_support:
+    - "Spring Boot"
+    - "Spring Framework"
+    - "Maven"
+    - "Gradle"
+    - "JUnit"
+    - "Mockito"
+  file_extensions:
+    - ".java"
+    - ".xml"
+    - ".gradle"
+    - ".properties"
+    - ".yml"
+    - ".yaml"
+  created_by: "AI Agent Hub"
+  last_updated: "2024-01-20"
+  tags:
+    - "java"
+    - "code-analysis"
+    - "quality"
+    - "security"
+    - "performance"

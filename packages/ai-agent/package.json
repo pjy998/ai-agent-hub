@@ -2,7 +2,7 @@
   "name": "ai-agent-vscode",
   "displayName": "AI Agent Hub",
   "description": "AI-powered coding assistant with project analysis, C# coding standards, and intelligent workflow automation for VS Code",
-  "version": "0.0.14",
+  "version": "0.0.18",
   "publisher": "jieky",
   "engines": {
     "vscode": "^1.74.0"
@@ -39,7 +39,8 @@
     "theme": "dark"
   },
   "activationEvents": [
-    "onStartupFinished"
+    "onStartupFinished",
+    "onLanguage"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -96,6 +97,11 @@
         "id": "ai-agent.analyze",
         "name": "analyze",
         "description": "Project self-analysis assistant"
+      },
+      {
+        "id": "ai-agent.config",
+        "name": "config",
+        "description": "Dynamic configuration generator for multi-language analysis"
       }
     ]
   },

@@ -11,10 +11,12 @@
 **Enhance Copilot Chat AI programming experience for developers**
 
 - **Structured Workflows**: Define complex multi-step AI programming processes through YAML presets
+- **Dynamic Configuration**: Generate analysis configurations for multiple programming languages via Copilot Chat
 - **Intelligent Context**: Automatically collect project context for better AI code understanding
 - **Transparent & Controllable**: Complete Prompt replay and debugging panels to track every AI reasoning step
 - **Automated Triggers**: Auto-start workflows on file save, code selection, or chat input
 - **Multi-Agent Collaboration**: Professional agents like coder, tester, requirements working together
+- **Multi-Language Support**: Built-in templates for C#, Java, Python, JavaScript, TypeScript, Vue.js, Go, Rust and more
 
 ## 📐 System Architecture
 
@@ -211,6 +213,13 @@ VSCode -> UI: showReplay(step1, step2, step3)
 - **YAML Preset System**: Configurable multi-step AI workflow definitions
 - **Multi-Agent Collaboration**: Professional agents for coder, tester, and requirements analysis
 - **Process Orchestration**: Advanced flow control including sequential execution, conditional branching, and parallel processing
+
+### 🎨 **Dynamic Configuration Generation**
+- **Multi-Language Support**: Built-in templates for C#, Java, Python, JavaScript, TypeScript, Vue.js, Go, Rust
+- **AI-Powered Generation**: Use `@ai-agent.config` commands to generate analysis configurations via Copilot Chat
+- **Smart Detection**: Automatically detect project languages and suggest appropriate configurations
+- **Configuration Validation**: Built-in validation and testing for generated YAML configurations
+- **Custom Requirements**: Generate tailored configurations based on specific project needs
 
 ### 📊 **Transparency & Debugging**
 - **Prompt Replay**: Complete recording of every AI interaction step

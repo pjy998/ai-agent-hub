@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import { SelfProjectScanAgent } from './agents/SelfProjectScanAgent';
+import { ConfigGeneratorParticipant } from './participants/ConfigGeneratorParticipant';
 
 // 版本信息显示
 function showVersionInfo() {
@@ -673,6 +674,7 @@ export async function activate(context: vscode.ExtensionContext) {
         const refactorParticipant = vscode.chat.createChatParticipant('ai-agent.refactor', new RefactorParticipant(workflowManager).handleRequest.bind(new RefactorParticipant(workflowManager)));
         const requirementsParticipant = vscode.chat.createChatParticipant('ai-agent.requirements', new RequirementsParticipant(workflowManager).handleRequest.bind(new RequirementsParticipant(workflowManager)));
         const selfAnalysisParticipant = vscode.chat.createChatParticipant('ai-agent.analyze', new SelfAnalysisParticipant(workflowManager).handleRequest.bind(new SelfAnalysisParticipant(workflowManager)));
+        const configGeneratorParticipant = vscode.chat.createChatParticipant('ai-agent.config', new ConfigGeneratorParticipant().handleRequest.bind(new ConfigGeneratorParticipant()));
         
         // 注册自我分析命令
         const analyzeSelfCommand = vscode.commands.registerCommand('ai-agent-hub.analyzeSelf', async () => {
