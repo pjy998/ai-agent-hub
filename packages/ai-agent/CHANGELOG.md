@@ -2,6 +2,20 @@
 
 All notable changes to the "AI Agent Hub" extension will be documented in this file.
 
+## [0.0.21] - 2025-01-27
+
+### ✨ Added
+- 🚀 **Token Probe Chat参与者**: 在GitHub Copilot Chat中直接使用Token Probe功能
+  - 新增 `@token` Chat参与者，支持在Copilot Chat中进行Token限制测试
+  - 支持自然语言交互：`@token 测试`、`@token 历史`、`@token 模型`等命令
+  - 实时测试结果显示和性能分析
+  - 智能模型识别和测试模式选择
+  - 集成测试历史查看和模型对比功能
+
+### 🔧 Enhanced
+- 💬 **Chat集成优化**: Token Probe功能现在可以通过VS Code命令和Chat两种方式使用
+- 📊 **用户体验提升**: 在Chat中提供更直观的测试结果展示和使用指导
+
 ## [0.0.20] - 2025-01-27
 
 ### ✨ Added

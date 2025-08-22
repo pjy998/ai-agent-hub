@@ -2,7 +2,7 @@
   "name": "ai-agent-vscode",
   "displayName": "AI Agent Hub",
   "description": "AI-powered coding assistant with project analysis, C# coding standards, and intelligent workflow automation for VS Code",
-  "version": "0.0.20",
+  "version": "0.0.21",
   "publisher": "jieky",
   "engines": {
     "vscode": "^1.74.0"

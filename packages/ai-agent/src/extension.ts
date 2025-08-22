@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { SelfProjectScanAgent } from './agents/SelfProjectScanAgent';
 import { ConfigGeneratorParticipant } from './participants/ConfigGeneratorParticipant';
+import { TokenProbeParticipant } from './participants/TokenProbeParticipant';
 import { registerTokenProbeCommands } from './commands/token-probe-command';
 
 // 版本信息显示
@@ -685,6 +686,10 @@ export async function activate(context: vscode.ExtensionContext) {
         const configGeneratorInstance = new ConfigGeneratorParticipant();
         const configGeneratorParticipant = vscode.chat.createChatParticipant('ai-agent.config', configGeneratorInstance.handleRequest.bind(configGeneratorInstance));
         
+        // 注册Token Probe Chat参与者
+        const tokenProbeInstance = new TokenProbeParticipant();
+        const tokenProbeParticipant = vscode.chat.createChatParticipant('ai-agent.token', tokenProbeInstance.handleRequest.bind(tokenProbeInstance));
+        
         // 注册自我分析命令
         const analyzeSelfCommand = vscode.commands.registerCommand('ai-agent-hub.analyzeSelf', async () => {
             try {
@@ -782,7 +787,10 @@ export async function activate(context: vscode.ExtensionContext) {
         context.subscriptions.push(
             codingParticipant, 
             refactorParticipant, 
-            requirementsParticipant, 
+            requirementsParticipant,
+            selfAnalysisParticipant,
+            configGeneratorParticipant,
+            tokenProbeParticipant,
             statusBarItem,
             analyzeSelfCommand,
             generateReportCommand,
