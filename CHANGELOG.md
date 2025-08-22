@@ -1,5 +1,25 @@
 # AI Agent Hub - 变更日志
 
+## [0.0.22] - 2025-01-22
+
+### 修复
+- **Chat Participant 注册**: 修复 package.json 中缺失的 `ai-agent.token` chat participant 声明
+  - 解决 "chatParticipant must be declared in package.json" 错误
+  - 正确注册 Token Probe chat participant 以支持 GitHub Copilot Chat
+
+## [0.0.21] - 2025-01-22
+
+### 新增
+- **Token Probe Chat Participant**: 为 GitHub Copilot Chat 集成添加 `@token` chat participant
+  - 在 Copilot Chat 中直接访问 Token Probe 功能
+  - 支持自然语言命令进行 token 限制测试
+  - 实时测试结果和进度更新
+  - 增强的聊天集成和直观的用户界面
+
+### 改进
+- 改进 GitHub Copilot Chat 集成，提供专用 participant
+- 通过聊天界面提供更好的 token 限制测试用户体验
+
 ## [0.0.3] - 2025-01-19
 
 ### 修复

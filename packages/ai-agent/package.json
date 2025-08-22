@@ -2,7 +2,7 @@
   "name": "ai-agent-vscode",
   "displayName": "AI Agent Hub",
   "description": "AI-powered coding assistant with project analysis, C# coding standards, and intelligent workflow automation for VS Code",
-  "version": "0.0.21",
+  "version": "0.0.22",
   "publisher": "jieky",
   "engines": {
     "vscode": "^1.74.0"
@@ -136,6 +136,11 @@
         "id": "ai-agent.config",
         "name": "config",
         "description": "Dynamic configuration generator for multi-language analysis"
+      },
+      {
+        "id": "ai-agent.token",
+        "name": "token",
+        "description": "Token limit testing and analysis for GitHub Copilot Chat models"
       }
     ]
   },
