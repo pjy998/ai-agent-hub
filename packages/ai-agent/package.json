@@ -2,7 +2,7 @@
   "name": "ai-agent-vscode",
   "displayName": "AI Agent Hub",
   "description": "AI-powered coding assistant with project analysis, C# coding standards, and intelligent workflow automation for VS Code",
-  "version": "0.0.18",
+  "version": "0.0.20",
   "publisher": "jieky",
   "engines": {
     "vscode": "^1.74.0"
@@ -59,6 +59,26 @@
         "command": "ai-agent-hub.viewRecommendations",
         "title": "AI Agent Hub: View Recommendations",
         "category": "AI Agent Hub"
+      },
+      {
+        "command": "ai-agent.tokenProbe",
+        "title": "AI Agent: Token Probe",
+        "category": "AI Agent"
+      },
+      {
+        "command": "ai-agent.tokenProbeQuick",
+        "title": "AI Agent: Token Probe (Quick Test)",
+        "category": "AI Agent"
+      },
+      {
+        "command": "ai-agent.tokenProbeHistory",
+        "title": "AI Agent: Token Probe History",
+        "category": "AI Agent"
+      },
+      {
+        "command": "ai-agent.tokenProbeClearHistory",
+        "title": "AI Agent: Clear Token Probe History",
+        "category": "AI Agent"
       }
     ],
     "menus": {
@@ -74,6 +94,20 @@
         {
           "command": "ai-agent-hub.viewRecommendations",
           "when": "workspaceFolderCount > 0"
+        },
+        {
+          "command": "ai-agent.tokenProbe",
+          "when": "workspaceFolderCount > 0"
+        },
+        {
+          "command": "ai-agent.tokenProbeQuick",
+          "when": "workspaceFolderCount > 0"
+        },
+        {
+          "command": "ai-agent.tokenProbeHistory"
+        },
+        {
+          "command": "ai-agent.tokenProbeClearHistory"
         }
       ]
     },

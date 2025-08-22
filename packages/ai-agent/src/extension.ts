@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { SelfProjectScanAgent } from './agents/SelfProjectScanAgent';
 import { ConfigGeneratorParticipant } from './participants/ConfigGeneratorParticipant';
+import { registerTokenProbeCommands } from './commands/token-probe-command';
 
 // 版本信息显示
 function showVersionInfo() {
@@ -670,11 +671,19 @@ export async function activate(context: vscode.ExtensionContext) {
         statusBarItem.tooltip = 'AI Agent Hub Connected';
         
         // 注册Chat参与者
-        const codingParticipant = vscode.chat.createChatParticipant('ai-agent.coding', new CodingParticipant(workflowManager).handleRequest.bind(new CodingParticipant(workflowManager)));
-        const refactorParticipant = vscode.chat.createChatParticipant('ai-agent.refactor', new RefactorParticipant(workflowManager).handleRequest.bind(new RefactorParticipant(workflowManager)));
-        const requirementsParticipant = vscode.chat.createChatParticipant('ai-agent.requirements', new RequirementsParticipant(workflowManager).handleRequest.bind(new RequirementsParticipant(workflowManager)));
-        const selfAnalysisParticipant = vscode.chat.createChatParticipant('ai-agent.analyze', new SelfAnalysisParticipant(workflowManager).handleRequest.bind(new SelfAnalysisParticipant(workflowManager)));
-        const configGeneratorParticipant = vscode.chat.createChatParticipant('ai-agent.config', new ConfigGeneratorParticipant().handleRequest.bind(new ConfigGeneratorParticipant()));
+        const codingInstance = new CodingParticipant(workflowManager);
+        const codingParticipant = vscode.chat.createChatParticipant('ai-agent.coding', codingInstance.handleRequest.bind(codingInstance));
+        
+        const refactorInstance = new RefactorParticipant(workflowManager);
+        const refactorParticipant = vscode.chat.createChatParticipant('ai-agent.refactor', refactorInstance.handleRequest.bind(refactorInstance));
+        
+        const requirementsInstance = new RequirementsParticipant(workflowManager);
+        const requirementsParticipant = vscode.chat.createChatParticipant('ai-agent.requirements', requirementsInstance.handleRequest.bind(requirementsInstance));
+        
+        const selfAnalysisInstance = new SelfAnalysisParticipant(workflowManager);
+        const selfAnalysisParticipant = vscode.chat.createChatParticipant('ai-agent.analyze', selfAnalysisInstance.handleRequest.bind(selfAnalysisInstance));
+        const configGeneratorInstance = new ConfigGeneratorParticipant();
+        const configGeneratorParticipant = vscode.chat.createChatParticipant('ai-agent.config', configGeneratorInstance.handleRequest.bind(configGeneratorInstance));
         
         // 注册自我分析命令
         const analyzeSelfCommand = vscode.commands.registerCommand('ai-agent-hub.analyzeSelf', async () => {
@@ -765,6 +774,9 @@ export async function activate(context: vscode.ExtensionContext) {
                 vscode.window.showErrorMessage(`查看建议失败: ${error.message}`);
             }
         });
+        
+        // 注册Token Probe命令
+        registerTokenProbeCommands(context);
         
         // 添加到上下文
         context.subscriptions.push(

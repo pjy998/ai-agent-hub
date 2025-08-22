@@ -2,6 +2,29 @@
 
 All notable changes to the "AI Agent Hub" extension will be documented in this file.
 
+## [0.0.20] - 2025-01-27
+
+### ✨ Added
+- **Token Probe功能**: 全新的AI模型上下文窗口测试工具
+  - 支持15种最新AI模型，包括GPT-4.1、GPT-4o、GPT-5、Claude Sonnet 3.5/3.7/4、Gemini 2.5 Pro等
+  - 智能二分法和线性搜索算法，快速准确找到Token限制
+  - 项目摘要生成功能，支持动态调整大小以适应不同模型
+  - 详细的测试报告和历史记录管理
+  - VS Code命令集成：`AI Agent: Token Probe`、`AI Agent: Token Probe (Quick Test)`等
+- **GitHub Copilot Chat API集成**: 完整的API调用和错误处理机制
+- **性能优化**: 支持并发测试和结果缓存，提升测试效率
+
+### 🛠️ Technical Details
+- 实现了智能测试策略，结合二分法快速定位和线性搜索精确验证
+- 添加了完整的TypeScript类型定义和错误处理
+- 集成了项目分析和摘要生成功能，支持多种编程语言
+- 提供了用户友好的配置界面和进度显示
+
+## [0.0.19] - 2025-01-27
+
+### 🔧 Internal
+- 代码重构和优化准备
+
 ## [0.0.18] - 2025-01-27
 
 ### 🔧 Fixed
