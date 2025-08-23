@@ -2,6 +2,30 @@
 
 All notable changes to the "AI Agent Hub" extension will be documented in this file.
 
+## [0.0.27] - 2025-01-23
+
+### 🚀 Enhanced
+- 实施了完整的参与者配置管理系统，彻底解决硬编码问题
+- 创建了集中化的参与者配置文件 (`participants-config.ts`)
+- 实现了 `ParticipantHelper` 辅助工具类，简化参与者名称和命令引用
+- 添加了标准化的帮助文档模板系统
+
+### 🔧 Fixed
+- 修复了 `CodeAnalysisParticipant` 中所有硬编码的参与者名称引用
+- 将错误的 `@csharp` 和 `@codeanalysis` 引用统一为正确的 `@code`
+- 消除了帮助文档和命令提示中的硬编码问题
+
+### 📚 Documentation
+- 新增了详细的《参与者配置管理指南》(`participant-configuration-guide.md`)
+- 提供了完整的使用指南、最佳实践和迁移指南
+- 包含了故障排除和调试技巧
+
+### 🛠️ Technical
+- 引入了类型安全的配置访问机制
+- 实现了动态参与者名称生成系统
+- 提供了可扩展的配置架构，便于未来添加新参与者
+- 确保了所有参与者配置的一致性和可维护性
+
 ## [0.0.26] - 2025-01-23
 
 ### 🔧 Fixed

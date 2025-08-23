@@ -2,7 +2,7 @@
   "name": "ai-agent-vscode",
   "displayName": "AI Agent Hub",
   "description": "AI编程助手扩展：提供项目分析、C#代码规范检查、Token使用监控等功能。集成GitHub Copilot Chat，支持代码质量评估和报告生成。",
-  "version": "0.0.26",
+  "version": "0.0.27",
   "publisher": "jieky",
   "engines": {
     "vscode": "^1.74.0"

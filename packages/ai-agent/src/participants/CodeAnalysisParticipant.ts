@@ -2,6 +2,8 @@ import * as vscode from 'vscode';
 import { CSharpAnalysisCommand } from '../commands/csharp-analysis';
 import { getCSharpAnalyzer, CSharpProjectInfo } from '../analyzers/csharp-analyzer';
 import { outputManager } from '../utils/output-manager';
+import { ParticipantsConfigManager, PARTICIPANTS_CONFIG, COMMON_COMMANDS } from '../config/participants-config';
+import { ParticipantHelper, HELP_TEMPLATES } from '../utils/participant-helper';
 import * as path from 'path';
 
 /**
@@ -276,39 +278,17 @@ export class CodeAnalysisParticipant {
    * 处理帮助请求
    */
   private async handleHelpRequest(stream: vscode.ChatResponseStream): Promise<void> {
-    stream.markdown('# 🔍 C# 项目分析助手\n\n');
+    stream.markdown('# 🔍 代码分析助手\n\n');
     
     stream.markdown('## 📖 功能概述\n');
-    stream.markdown('专门为 C# 项目提供深度代码分析、质量评估和编码规范检查的智能助手。\n\n');
+    stream.markdown('专门为多语言项目提供深度代码分析、质量评估和编码规范检查的智能助手。\n\n');
     
-    stream.markdown('## 🚀 主要功能\n\n');
-    stream.markdown('### 项目分析\n');
-    stream.markdown('- `@csharp 分析项目` - 完整的项目结构和代码分析\n');
-    stream.markdown('- `@csharp 分析` - 快速项目扫描\n');
-    stream.markdown('- `@csharp 扫描` - 项目文件扫描\n\n');
-    
-    stream.markdown('### 代码质量\n');
-    stream.markdown('- `@csharp 质量检查` - 代码质量评估\n');
-    stream.markdown('- `@csharp 编码规范` - 编码规范检查\n');
-    stream.markdown('- `@csharp 规范` - 代码规范验证\n\n');
-    
-    stream.markdown('### 报告生成\n');
-    stream.markdown('- `@csharp 生成报告` - 生成详细分析报告\n');
-    stream.markdown('- `@csharp 报告` - 快速报告生成\n');
-    stream.markdown('- `@csharp 导出` - 导出分析结果\n\n');
-    
-    stream.markdown('### 问题查看\n');
-    stream.markdown('- `@csharp 显示问题` - 显示代码质量问题\n');
-    stream.markdown('- `@csharp 问题` - 查看问题列表\n');
-    stream.markdown('- `@csharp 建议` - 获取改进建议\n\n');
-    
-    stream.markdown('### 统计信息\n');
-    stream.markdown('- `@csharp 统计` - 项目统计信息\n');
-    stream.markdown('- `@csharp 数据` - 项目数据概览\n');
-    stream.markdown('- `@csharp 指标` - 质量指标\n\n');
+    // 使用模板生成帮助文档
+    const helpSections = ParticipantHelper.generateHelpSections('CODE', HELP_TEMPLATES.ANALYSIS_ASSISTANT.sections);
+    stream.markdown(helpSections);
     
     stream.markdown('## 💡 使用技巧\n');
-    stream.markdown('1. 确保工作区包含有效的 C# 项目文件（.csproj 或 .sln）\n');
+    stream.markdown('1. 确保工作区包含有效的项目文件\n');
     stream.markdown('2. 首次分析可能需要较长时间，请耐心等待\n');
     stream.markdown('3. 定期进行质量检查以保持代码质量\n');
     stream.markdown('4. 使用生成的报告进行团队代码审查\n\n');
@@ -337,12 +317,11 @@ export class CodeAnalysisParticipant {
     stream.markdown(`👋 **欢迎使用${languageName}项目分析助手！**\n\n`);
     
     stream.markdown('我可以帮助您：\n');
-    stream.markdown('- 🔍 **分析项目**: `@codeanalysis 分析项目`\n');
-    stream.markdown('- 🎯 **质量检查**: `@codeanalysis 质量检查`\n');
-    stream.markdown('- 📊 **生成报告**: `@codeanalysis 生成报告`\n');
-    stream.markdown('- ⚠️ **显示问题**: `@codeanalysis 显示问题`\n');
-    stream.markdown('- 📈 **查看统计**: `@codeanalysis 统计`\n');
-    stream.markdown('- ❓ **获取帮助**: `@codeanalysis 帮助`\n\n');
+     
+     // 使用模板生成快速操作
+     const quickActions = ParticipantHelper.generateQuickActions('CODE', HELP_TEMPLATES.ANALYSIS_ASSISTANT.quickActions);
+     stream.markdown(quickActions);
+     stream.markdown(`\n- ❓ **获取帮助**: ${ParticipantHelper.getParticipantName('CODE')} 帮助\n\n`);
     
     if (projectLanguage) {
       stream.markdown(`💡 **提示**: 检测到${languageName}项目，已为您启用相应的分析功能。`);
@@ -394,10 +373,12 @@ export class CodeAnalysisParticipant {
     stream.markdown(`- 🔵 **信息**: ${infoCount} 个\n\n`);
     
     if (issues.length > 0) {
-      stream.markdown('💡 使用 `@csharp 显示问题` 查看详细问题列表\n');
+   const issueCommand = ParticipantHelper.getCommandReference('CODE', 'SHOW_ISSUES');
+            stream.markdown(`💡 使用 ${issueCommand} 查看详细问题列表\n\n`);
     }
     
-    stream.markdown('📊 使用 `@csharp 生成报告` 获取完整分析报告');
+    const reportCommand = ParticipantHelper.getCommandReference('CODE', 'GENERATE_REPORT');
+     stream.markdown(`📊 使用 ${reportCommand} 获取完整分析报告`);
   }
   
   /**
