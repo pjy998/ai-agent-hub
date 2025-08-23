@@ -29,6 +29,10 @@
     "claude",
     "anthropic"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ai-agent-hub/ai-agent-hub.git"
+  },
   "activationEvents": [
     "onStartupFinished"
   ],
