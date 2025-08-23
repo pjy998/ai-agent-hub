@@ -1,8 +1,8 @@
 {
   "name": "ai-agent-vscode",
   "displayName": "AI Agent Hub",
-  "description": "AI-powered coding assistant with project analysis, C# coding standards, and intelligent workflow automation for VS Code",
-  "version": "0.0.22",
+  "description": "🤖 智能AI编程助手：提供项目自动分析、C#编码规范检查、Token使用监控、多语言代码质量评估和GitHub Copilot Chat深度集成。支持实时代码分析、自动化报告生成和智能工作流优化，让AI成为你的编程伙伴！",
+  "version": "0.0.23",
   "publisher": "jieky",
   "engines": {
     "vscode": "^1.74.0"

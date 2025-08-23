@@ -1,5 +1,23 @@
 # AI Agent Hub - 变更日志
 
+## [0.0.23] - 2025-01-22
+
+### 代码库清理
+- **重复文件清理**: 删除未使用的 `CSharpAnalysisParticipant.ts` 及其编译文件
+  - 移除与 `CodeAnalysisParticipant.ts` 功能重复的代码
+  - 清理相关的 JavaScript 编译文件和类型定义文件
+- **临时文档清理**: 移除过时的开发文档和发布记录
+  - 删除 `CONSOLE-ERROR-ANALYSIS.md`、`duplicate-output-channels-fix.md`、`fix-summary.md`
+  - 删除 `mapreduce-analysis-design.md`、`simple-optimization-plan.md`
+  - 删除过时的发布记录 `RELEASE-0.0.15.md`、`RELEASE-SUCCESS-0.0.16.md`
+- **目录结构优化**: 清理空目录，提高项目结构清晰度
+  - 删除空的 `src/test/` 目录
+
+### 技术改进
+- **代码质量**: 消除代码重复，提高维护性
+- **项目结构**: 优化文件组织，减少冗余
+- **编译验证**: 确保清理后项目编译正常
+
 ## [0.0.22] - 2025-01-22
 
 ### 修复

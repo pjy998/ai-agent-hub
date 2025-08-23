@@ -1,57 +1,76 @@
 # AI Agent Hub
 
-🤖 **AI-powered coding assistant with project analysis, C# coding standards, and intelligent workflow automation for VS Code**
+🤖 **智能AI编程助手 - 让AI成为你的编程伙伴！**
 
-## ✨ Features
+> 🚀 提供项目自动分析、C#编码规范检查、Token使用监控、多语言代码质量评估和GitHub Copilot Chat深度集成的强大VS Code扩展
 
-### 🔍 Project Self-Analysis
-- **Intelligent Project Scanning**: Automatically analyzes your codebase structure and dependencies
-- **Health Assessment**: Provides comprehensive project health scores and recommendations
-- **Real-time Insights**: Get instant feedback on code quality and project organization
+[![Version](https://img.shields.io/badge/version-0.0.23-blue.svg)](https://marketplace.visualstudio.com/items?itemName=jieky.ai-agent-vscode)
+[![Downloads](https://img.shields.io/badge/downloads-1K+-green.svg)](https://marketplace.visualstudio.com/items?itemName=jieky.ai-agent-vscode)
+[![Rating](https://img.shields.io/badge/rating-⭐⭐⭐⭐⭐-yellow.svg)](https://marketplace.visualstudio.com/items?itemName=jieky.ai-agent-vscode)
 
-### 🎯 C# Coding Standards Analysis
-- **Microsoft Standards Compliance**: Checks against official Microsoft C# coding guidelines
-- **Naming Conventions**: Validates class, method, and variable naming patterns
-- **Code Formatting**: Ensures consistent indentation, spacing, and style
-- **Security Analysis**: Detects potential security vulnerabilities and hardcoded secrets
-- **Performance Optimization**: Identifies performance bottlenecks and suggests improvements
-- **Automated Reports**: Generates detailed analysis reports with actionable recommendations
+## ✨ 核心功能
 
-### 🚀 GitHub Copilot Chat Integration
-- **@analyze Assistant**: Seamlessly integrated with GitHub Copilot Chat
-- **Natural Language Commands**: Trigger analysis with simple commands like `@analyze csharp`
-- **Contextual Analysis**: Automatically uses your current workspace for analysis
-- **Interactive Results**: View results directly in Copilot Chat with rich formatting
+### 🔍 智能项目分析
+- **🤖 AI驱动扫描**: 自动分析代码库结构、依赖关系和架构模式
+- **📊 健康度评估**: 提供全面的项目健康评分和改进建议
+- **⚡ 实时洞察**: 获取代码质量和项目组织的即时反馈
+- **📈 趋势分析**: 跟踪项目质量变化趋势
 
-### 🛠️ Intelligent Workflow Automation
-- **Code Refactoring**: AI-powered code improvement suggestions
-- **Requirements Analysis**: Analyze and validate project requirements
-- **Automated Configuration**: Generates `.editorconfig` and analysis rule files
-- **Multi-language Support**: Extensible architecture for various programming languages
+### 🎯 C# 编码规范检查
+- **✅ 微软标准合规**: 严格按照官方Microsoft C#编码指南检查
+- **🏷️ 命名规范**: 验证类、方法、变量的命名模式
+- **🎨 代码格式**: 确保一致的缩进、间距和代码风格
+- **🔒 安全分析**: 检测潜在安全漏洞和硬编码密钥
+- **⚡ 性能优化**: 识别性能瓶颈并提供优化建议
+- **📋 自动化报告**: 生成详细的分析报告和可执行的改进方案
 
-## 🚀 Quick Start
+### 🚀 GitHub Copilot Chat 深度集成
+- **💬 智能对话**: 6个专业Chat参与者 (@analyze, @token, @report, @config, @recommend, @code)
+- **🗣️ 自然语言命令**: 使用简单命令如 `@analyze csharp` 触发分析
+- **🎯 上下文感知**: 自动使用当前工作区进行分析
+- **🎨 交互式结果**: 在Copilot Chat中直接查看丰富格式的结果
+- **🔄 实时协作**: 与AI助手进行实时代码讨论和优化
 
-### Installation
-1. Install the extension from VS Code Marketplace
-2. Open any project in VS Code
-3. The extension activates automatically
+### 🛠️ 智能工作流自动化
+- **🔧 代码重构**: AI驱动的代码改进建议
+- **📝 需求分析**: 分析和验证项目需求
+- **⚙️ 自动配置**: 生成 `.editorconfig` 和分析规则文件
+- **🌐 多语言支持**: 可扩展架构支持多种编程语言
+- **📊 Token监控**: 实时监控GitHub Copilot Chat的Token使用情况
 
-### Using Project Analysis
-1. Open Command Palette (`Ctrl+Shift+P`)
-2. Run `AI Agent Hub: Analyze Self`
-3. View comprehensive project analysis results
+## 🚀 快速开始
 
-### Using C# Coding Standards Analysis
+### 📦 安装步骤
+1. 🛒 从VS Code应用市场安装扩展
+2. 📂 在VS Code中打开任意项目
+3. ⚡ 扩展自动激活，开始智能分析
 
-#### Via Copilot Chat (Recommended)
-1. Open GitHub Copilot Chat (`Ctrl+Shift+I`)
-2. Type `@analyze csharp` to trigger C# analysis
-3. View real-time analysis results and recommendations
+### 🔍 使用项目分析
+1. 🎯 打开命令面板 (`Ctrl+Shift+P`)
+2. 🚀 运行 `AI Agent Hub: Analyze Self`
+3. 📊 查看全面的项目分析结果
 
-#### Via Command Palette
-1. Open Command Palette (`Ctrl+Shift+P`)
-2. Run `AI Agent Hub: Analyze Self`
-3. Select C# analysis options
+### 🎯 使用C#编码规范检查
+
+#### 💬 通过Copilot Chat (推荐方式)
+1. 🗨️ 打开GitHub Copilot Chat (`Ctrl+Shift+I`)
+2. ⌨️ 输入 `@analyze csharp` 触发C#分析
+3. 📋 实时查看分析结果和改进建议
+
+#### 🎛️ 通过命令面板
+1. 🎯 打开命令面板 (`Ctrl+Shift+P`)
+2. 🚀 运行 `AI Agent Hub: Analyze Self`
+3. ⚙️ 选择C#分析选项
+
+### 💡 Chat参与者使用指南
+```
+@analyze 项目分析    # 全面项目分析
+@token 检查使用量    # Token使用监控
+@report 生成报告    # 详细分析报告
+@config 查看配置    # 扩展配置管理
+@recommend 改进建议 # 智能优化建议
+@code 代码质量     # 代码质量评估
+```
 
 ## 📊 Analysis Results
 

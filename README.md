@@ -2,7 +2,7 @@
 
 > AI-powered coding assistant with project analysis and intelligent workflow automation for VS Code
 
-[![Version](https://img.shields.io/badge/version-0.0.22-blue.svg)](https://github.com/your-repo/ai-agent-hub)
+[![Version](https://img.shields.io/badge/version-0.0.23-blue.svg)](https://github.com/your-repo/ai-agent-hub)
 [![VS Code](https://img.shields.io/badge/VS%20Code-1.74.0+-brightgreen.svg)](https://code.visualstudio.com/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
@@ -128,7 +128,7 @@ ai-agent-hub/
 
 ## 版本历史
 
-### v0.0.22 (当前版本)
+### v0.0.23 (当前版本)
 - ✅ Chat 参与者系统完整实现
 - ✅ 项目分析引擎优化
 - ✅ 多语言支持增强
@@ -143,17 +143,9 @@ ai-agent-hub/
 
 ## 路线图
 
-### v0.1.0 (计划中)
-- 🔄 增强多语言支持
-- 🔄 高级代码质量分析
-- 🔄 可视化报告
-- 🔄 性能优化
+详细的项目发展规划和版本路线图请参考 [ROADMAP.md](ROADMAP.md)。
 
-### v0.2.0 (未来)
-- 📋 企业级功能
-- 📋 团队协作支持
-- 📋 自定义规则引擎
-- 📋 API 集成扩展
+我们致力于打造一个智能、高效、易用的 VS Code 编程助手，为开发者提供卓越的编程体验。
 
 ## 贡献指南
 
