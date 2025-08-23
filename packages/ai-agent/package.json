@@ -2,7 +2,7 @@
   "name": "ai-agent-vscode",
   "displayName": "AI Agent Hub",
   "description": "AI编程助手扩展：提供项目分析、C#代码规范检查、Token使用监控等功能。集成GitHub Copilot Chat，支持代码质量评估和报告生成。",
-  "version": "0.0.25",
+  "version": "0.0.26",
   "publisher": "jieky",
   "engines": {
     "vscode": "^1.74.0"
@@ -174,32 +174,32 @@
     },
     "chatParticipants": [
       {
-        "id": "ai-agent.analyze",
+        "id": "analyze",
         "name": "analyze",
         "description": "Project self-analysis assistant"
       },
       {
-        "id": "ai-agent.config",
+        "id": "config",
         "name": "config",
         "description": "Dynamic configuration generator for multi-language analysis"
       },
       {
-        "id": "ai-agent.token",
+        "id": "token",
         "name": "token",
         "description": "Token limit testing and analysis for GitHub Copilot Chat models - 测试和分析模型Token限制"
       },
       {
-        "id": "ai-agent.code",
+        "id": "code",
         "name": "code",
         "description": "Multi-language code analysis and quality assessment assistant - 多语言代码分析和质量评估助手"
       },
       {
-        "id": "ai-agent.report",
+        "id": "report",
         "name": "report",
         "description": "Project report generator with multiple formats - 项目报告生成器，支持多种格式"
       },
       {
-        "id": "ai-agent.recommend",
+        "id": "recommend",
         "name": "recommend",
         "description": "Intelligent recommendation system for project improvements - 智能推荐系统，提供项目改进建议",
         "isSticky": true

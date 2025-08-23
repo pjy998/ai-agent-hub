@@ -2,6 +2,17 @@
 
 All notable changes to the "AI Agent Hub" extension will be documented in this file.
 
+## [0.0.26] - 2025-01-23
+
+### 🔧 Fixed
+- **Chat参与者ID**: 修复Chat参与者ID过长的问题，从`ai-agent.xxx`格式改为简短的`xxx`格式
+- **用户体验**: 现在用户可以使用`@code`、`@report`、`@token`等简短格式调用Chat参与者，而不是之前的长格式`@jieky.ai-agent-vscode.ai-agent.code`
+- **代码一致性**: 确保package.json配置与extension.ts注册代码保持一致
+
+### 🛠️ Technical Details
+- 统一Chat参与者ID命名规范
+- 优化用户调用体验
+
 ## [0.0.25] - 2025-01-23
 
 ### 🚀 Enhanced

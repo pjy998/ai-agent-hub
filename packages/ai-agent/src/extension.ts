@@ -624,25 +624,25 @@ export async function activate(context: vscode.ExtensionContext) {
         
         // 注册Chat参与者
         const selfAnalysisInstance = new SelfAnalysisParticipant(workflowManager);
-        const selfAnalysisParticipant = vscode.chat.createChatParticipant('ai-agent.analyze', selfAnalysisInstance.handleRequest.bind(selfAnalysisInstance));
+        const selfAnalysisParticipant = vscode.chat.createChatParticipant('analyze', selfAnalysisInstance.handleRequest.bind(selfAnalysisInstance));
         const configGeneratorInstance = new ConfigGeneratorParticipant();
-        const configGeneratorParticipant = vscode.chat.createChatParticipant('ai-agent.config', configGeneratorInstance.handleRequest.bind(configGeneratorInstance));
+        const configGeneratorParticipant = vscode.chat.createChatParticipant('config', configGeneratorInstance.handleRequest.bind(configGeneratorInstance));
         
         // 注册Token Probe Chat参与者
         const tokenProbeInstance = new TokenProbeParticipant();
-        const tokenProbeParticipant = vscode.chat.createChatParticipant('ai-agent.token', tokenProbeInstance.handleRequest.bind(tokenProbeInstance));
+        const tokenProbeParticipant = vscode.chat.createChatParticipant('token', tokenProbeInstance.handleRequest.bind(tokenProbeInstance));
         
         // 注册C# Analysis Chat参与者
         const codeAnalysisInstance = new CodeAnalysisParticipant();
-    const codeAnalysisParticipant = vscode.chat.createChatParticipant('ai-agent.code', codeAnalysisInstance.handleRequest.bind(codeAnalysisInstance));
+        const codeAnalysisParticipant = vscode.chat.createChatParticipant('code', codeAnalysisInstance.handleRequest.bind(codeAnalysisInstance));
         
         // 注册Report Chat参与者
         const reportInstance = new ReportParticipant();
-        const reportParticipant = vscode.chat.createChatParticipant('ai-agent.report', reportInstance.handleRequest.bind(reportInstance));
+        const reportParticipant = vscode.chat.createChatParticipant('report', reportInstance.handleRequest.bind(reportInstance));
         
         // 注册Recommend Chat参与者
         const recommendInstance = new RecommendParticipant();
-        const recommendParticipant = vscode.chat.createChatParticipant('ai-agent.recommend', recommendInstance.handleRequest.bind(recommendInstance));
+        const recommendParticipant = vscode.chat.createChatParticipant('recommend', recommendInstance.handleRequest.bind(recommendInstance));
         
         // 注册自我分析命令
         const analyzeSelfCommand = vscode.commands.registerCommand('ai-agent-hub.analyzeSelf', async () => {
