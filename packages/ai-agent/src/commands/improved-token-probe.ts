@@ -1,5 +1,10 @@
 import * as vscode from 'vscode';
-import { createImprovedTokenProbe, ImprovedTokenProbeConfig, ImprovedTokenProbeResult, ImprovedModelConfig } from '../features/improved-token-probe';
+import {
+  createImprovedTokenProbe,
+  ImprovedTokenProbeConfig,
+  ImprovedTokenProbeResult,
+  ImprovedModelConfig,
+} from '../features/improved-token-probe';
 import { LLMMonitor } from '../monitoring/llm-monitor';
 import { outputManager } from '../utils/output-manager';
 
@@ -8,47 +13,43 @@ import { outputManager } from '../utils/output-manager';
  */
 export class ImprovedTokenProbeCommand {
   private llmMonitor: LLMMonitor;
-  
+
   constructor() {
     this.llmMonitor = LLMMonitor.getInstance();
   }
-  
+
   /**
    * 注册改进的Token Probe相关命令
    */
   static registerCommands(context: vscode.ExtensionContext): void {
     const probeCommand = new ImprovedTokenProbeCommand();
-    
+
     // 注册改进的Token Probe命令
     const improvedProbeCommand = vscode.commands.registerCommand(
       'ai-agent.improvedTokenProbe',
       () => probeCommand.runImprovedTokenProbe()
     );
-    
+
     // 注册快速Token Probe命令
-    const quickProbeCommand = vscode.commands.registerCommand(
-      'ai-agent.quickTokenProbe',
-      () => probeCommand.runQuickTokenProbe()
+    const quickProbeCommand = vscode.commands.registerCommand('ai-agent.quickTokenProbe', () =>
+      probeCommand.runQuickTokenProbe()
     );
-    
+
     // 注册自定义Token Probe命令
-    const customProbeCommand = vscode.commands.registerCommand(
-      'ai-agent.customTokenProbe',
-      () => probeCommand.runCustomTokenProbe()
+    const customProbeCommand = vscode.commands.registerCommand('ai-agent.customTokenProbe', () =>
+      probeCommand.runCustomTokenProbe()
     );
-    
+
     // 注册显示Token使用统计命令
-    const showStatsCommand = vscode.commands.registerCommand(
-      'ai-agent.showTokenStats',
-      () => probeCommand.showTokenUsageStats()
+    const showStatsCommand = vscode.commands.registerCommand('ai-agent.showTokenStats', () =>
+      probeCommand.showTokenUsageStats()
     );
-    
+
     // 注册导出Token报告命令
-    const exportReportCommand = vscode.commands.registerCommand(
-      'ai-agent.exportTokenReport',
-      () => probeCommand.exportTokenReport()
+    const exportReportCommand = vscode.commands.registerCommand('ai-agent.exportTokenReport', () =>
+      probeCommand.exportTokenReport()
     );
-    
+
     context.subscriptions.push(
       improvedProbeCommand,
       quickProbeCommand,
@@ -57,7 +58,7 @@ export class ImprovedTokenProbeCommand {
       exportReportCommand
     );
   }
-  
+
   /**
    * 运行改进的Token Probe
    */
@@ -68,22 +69,24 @@ export class ImprovedTokenProbeCommand {
       if (!selectedModel) {
         return;
       }
-      
+
       // 显示测试配置
       const config = await this.getProbeConfiguration(selectedModel);
       if (!config) {
         return;
       }
-      
+
       // 执行测试
       await this.executeTokenProbe(config);
-      
     } catch (error) {
       vscode.window.showErrorMessage(`Token Probe失败: ${error}`);
-      outputManager.logError('Token Probe测试失败', error instanceof Error ? error : new Error(String(error)));
+      outputManager.logError(
+        'Token Probe测试失败',
+        error instanceof Error ? error : new Error(String(error))
+      );
     }
   }
-  
+
   /**
    * 运行快速Token Probe
    */
@@ -93,29 +96,29 @@ export class ImprovedTokenProbeCommand {
       if (!selectedModel) {
         return;
       }
-      
+
       // 使用默认快速配置
       const config: ImprovedTokenProbeConfig = {
-        model: selectedModel,
-        testMode: 'binary_search',
-        minTestLength: 1000,
-        maxTestLength: 50000,
-        stepSize: 1000,
-        maxAttempts: 15,
-        timeout: 30000,
-        includeProjectContext: true,
-        includeOutputTokens: true,
-        testOutputLength: 500,
-        precisionThreshold: 1000
+        models: [
+          {
+            name: selectedModel,
+            maxTokens: 128000,
+            costPer1kTokens: 0.03,
+            provider: 'openai',
+          },
+        ],
+        includeSystemPrompt: true,
+        includeContext: true,
+        outputFormat: 'table',
+        showCosts: true,
       };
-      
+
       await this.executeTokenProbe(config);
-      
     } catch (error) {
       vscode.window.showErrorMessage(`快速Token Probe失败: ${error}`);
     }
   }
-  
+
   /**
    * 运行自定义Token Probe
    */
@@ -125,145 +128,148 @@ export class ImprovedTokenProbeCommand {
       if (!selectedModel) {
         return;
       }
-      
+
       const config = await this.getAdvancedConfiguration(selectedModel);
       if (!config) {
         return;
       }
-      
+
       await this.executeTokenProbe(config);
-      
     } catch (error) {
       vscode.window.showErrorMessage(`自定义Token Probe失败: ${error}`);
     }
   }
-  
+
   /**
    * 选择模型
    */
   private async selectModel(): Promise<string | undefined> {
-    const { createImprovedTokenProbe } = await import('../features/improved-token-probe');
-    const probe = createImprovedTokenProbe();
-    const models = (probe.constructor as any).getSupportedModels() as ImprovedModelConfig[];
-    
+    const { defaultImprovedTokenProbeConfig } = await import('../features/improved-token-probe');
+    const models = defaultImprovedTokenProbeConfig.models;
+
     const modelItems = models.map(model => ({
-      label: model.displayName,
-      description: `最大上下文: ${model.maxContextLength.toLocaleString()} tokens`,
-      detail: `输入: $${model.inputTokenPrice}/1K tokens, 输出: $${model.outputTokenPrice}/1K tokens`,
-      value: model.name
+      label: model.name,
+      description: `最大上下文: ${model.maxTokens.toLocaleString()} tokens`,
+      detail: `费用: $${model.costPer1kTokens || 0}/1K tokens, 提供商: ${model.provider || 'unknown'}`,
+      value: model.name,
     }));
-    
+
     const selected = await vscode.window.showQuickPick(modelItems, {
       placeHolder: '选择要测试的模型',
       matchOnDescription: true,
-      matchOnDetail: true
+      matchOnDetail: true,
     });
-    
+
     return selected?.value;
   }
-  
+
   /**
    * 获取探测配置
    */
-  private async getProbeConfiguration(modelName: string): Promise<ImprovedTokenProbeConfig | undefined> {
+  private async getProbeConfiguration(
+    modelName: string
+  ): Promise<ImprovedTokenProbeConfig | undefined> {
     const testModeItems = [
       {
         label: '二分搜索',
         description: '快速找到最大token限制（推荐）',
-        value: 'binary_search' as const
+        value: 'binary_search' as const,
       },
       {
         label: '线性搜索',
         description: '逐步增加token数量进行测试',
-        value: 'linear_search' as const
+        value: 'linear_search' as const,
       },
       {
         label: '自适应搜索',
         description: '先粗略后精细的混合搜索',
-        value: 'adaptive' as const
-      }
+        value: 'adaptive' as const,
+      },
     ];
-    
+
     const selectedMode = await vscode.window.showQuickPick(testModeItems, {
-      placeHolder: '选择测试模式'
+      placeHolder: '选择测试模式',
     });
-    
+
     if (!selectedMode) {
       return undefined;
     }
-    
+
     // 获取测试范围
     const minLength = await vscode.window.showInputBox({
       prompt: '最小测试长度（tokens）',
       value: '1000',
-      validateInput: (value) => {
+      validateInput: value => {
         const num = parseInt(value);
         return isNaN(num) || num < 100 ? '请输入有效的数字（≥100）' : undefined;
-      }
+      },
     });
-    
+
     if (!minLength) {
       return undefined;
     }
-    
+
     const maxLength = await vscode.window.showInputBox({
       prompt: '最大测试长度（tokens）',
       value: '100000',
-      validateInput: (value) => {
+      validateInput: value => {
         const num = parseInt(value);
         const min = parseInt(minLength);
         return isNaN(num) || num <= min ? `请输入有效的数字（>${min}）` : undefined;
-      }
+      },
     });
-    
+
     if (!maxLength) {
       return undefined;
     }
-    
+
     // 获取其他配置
     const includeProjectContext = await vscode.window.showQuickPick(
       [
         { label: '是', value: true },
-        { label: '否', value: false }
+        { label: '否', value: false },
       ],
       { placeHolder: '是否包含项目上下文？' }
     );
-    
+
     if (includeProjectContext === undefined) {
       return undefined;
     }
-    
+
     const includeOutputTokens = await vscode.window.showQuickPick(
       [
         { label: '是（推荐）', value: true },
-        { label: '否', value: false }
+        { label: '否', value: false },
       ],
       { placeHolder: '是否计算输出token消耗？' }
     );
-    
+
     if (includeOutputTokens === undefined) {
       return undefined;
     }
-    
+
     return {
-      model: modelName,
-      testMode: selectedMode.value,
-      minTestLength: parseInt(minLength),
-      maxTestLength: parseInt(maxLength),
-      stepSize: selectedMode.value === 'linear_search' ? 2000 : 1000,
-      maxAttempts: 20,
-      timeout: 60000,
-      includeProjectContext: includeProjectContext.value,
-      includeOutputTokens: includeOutputTokens.value,
-      testOutputLength: 1000,
-      precisionThreshold: 500
+      models: [
+        {
+          name: modelName,
+          maxTokens: 128000,
+          costPer1kTokens: 0.03,
+          provider: 'openai',
+        },
+      ],
+      includeSystemPrompt: includeProjectContext.value,
+      includeContext: includeOutputTokens.value,
+      outputFormat: 'table',
+      showCosts: true,
     };
   }
-  
+
   /**
    * 获取高级配置
    */
-  private async getAdvancedConfiguration(modelName: string): Promise<ImprovedTokenProbeConfig | undefined> {
+  private async getAdvancedConfiguration(
+    modelName: string
+  ): Promise<ImprovedTokenProbeConfig | undefined> {
     // 创建配置面板
     const panel = vscode.window.createWebviewPanel(
       'tokenProbeConfig',
@@ -271,14 +277,14 @@ export class ImprovedTokenProbeCommand {
       vscode.ViewColumn.One,
       {
         enableScripts: true,
-        retainContextWhenHidden: true
+        retainContextWhenHidden: true,
       }
     );
-    
-    return new Promise((resolve) => {
+
+    return new Promise(resolve => {
       panel.webview.html = this.generateConfigWebview(modelName);
-      
-      panel.webview.onDidReceiveMessage((message) => {
+
+      panel.webview.onDidReceiveMessage(message => {
         if (message.command === 'submit') {
           resolve(message.config);
           panel.dispose();
@@ -287,13 +293,13 @@ export class ImprovedTokenProbeCommand {
           panel.dispose();
         }
       });
-      
+
       panel.onDidDispose(() => {
         resolve(undefined);
       });
     });
   }
-  
+
   /**
    * 生成配置Webview
    */
@@ -488,7 +494,7 @@ export class ImprovedTokenProbeCommand {
       </html>
     `;
   }
-  
+
   /**
    * 执行Token探测
    */
@@ -496,184 +502,220 @@ export class ImprovedTokenProbeCommand {
     const channel = outputManager.getTokenProbeChannel();
     channel.show();
     channel.clear();
-    
-    return vscode.window.withProgress({
-      location: vscode.ProgressLocation.Notification,
-      title: `Token Probe: ${config.model}`,
-      cancellable: false
-    }, async (progress) => {
-      progress.report({ increment: 0, message: '初始化Token Probe...' });
-      
-      const probe = createImprovedTokenProbe();
-      
-      progress.report({ increment: 10, message: '开始token限制测试...' });
-      
-      const result = await probe.runImprovedProbe(config);
-      
-      progress.report({ increment: 90, message: '生成测试报告...' });
-      
-      await this.displayResults(result);
-      
-      progress.report({ increment: 100, message: '测试完成' });
-      
-      // 显示完成通知
-      const action = await vscode.window.showInformationMessage(
-        `Token Probe完成！实际最大token: ${result.actualMaxTokens.toLocaleString()}, 成功率: ${result.successRate.toFixed(1)}%`,
-        '查看详细报告',
-        '查看使用统计'
-      );
-      
-      if (action === '查看详细报告') {
-        await this.generateDetailedReport(result);
-      } else if (action === '查看使用统计') {
-        await this.showTokenUsageStats();
+
+    return vscode.window.withProgress(
+      {
+        location: vscode.ProgressLocation.Notification,
+        title: `Token Probe: ${config.models[0]?.name || 'Multiple Models'}`,
+        cancellable: false,
+      },
+      async progress => {
+        progress.report({ increment: 0, message: '初始化Token Probe...' });
+
+        // 获取当前编辑器的文本
+        const editor = vscode.window.activeTextEditor;
+        const text = editor ? editor.document.getText() : 'Sample text for token analysis';
+        const context = 'VS Code Extension Token Probe Analysis';
+
+        progress.report({ increment: 10, message: '开始token限制测试...' });
+
+        const results = await createImprovedTokenProbe(config, text, context);
+
+        progress.report({ increment: 90, message: '生成测试报告...' });
+
+        await this.displayResults(results);
+
+        progress.report({ increment: 100, message: '测试完成' });
+
+        // 计算总体统计
+        const totalTokens = results.reduce((sum, r) => sum + r.tokens, 0);
+        const avgUtilization = results.reduce((sum, r) => sum + r.utilization, 0) / results.length;
+
+        // 显示完成通知
+        const action = await vscode.window.showInformationMessage(
+          `Token Probe完成！总tokens: ${totalTokens.toLocaleString()}, 平均利用率: ${avgUtilization.toFixed(1)}%`,
+          '查看详细报告',
+          '查看使用统计'
+        );
+
+        if (action === '查看详细报告') {
+          await this.generateDetailedReport(results);
+        } else if (action === '查看使用统计') {
+          await this.showTokenUsageStats();
+        }
       }
-    });
+    );
   }
-  
+
   /**
    * 显示测试结果
    */
-  private async displayResults(result: ImprovedTokenProbeResult): Promise<void> {
+  private async displayResults(results: ImprovedTokenProbeResult[]): Promise<void> {
     const channel = outputManager.getTokenProbeChannel();
-    
+
     channel.appendLine('\n' + '='.repeat(60));
     channel.appendLine('🎯 Token Probe 测试结果');
     channel.appendLine('='.repeat(60));
-    
-    channel.appendLine(`\n📊 基本信息`);
-    channel.appendLine(`模型: ${result.model}`);
-    channel.appendLine(`理论最大上下文: ${result.maxContextLength.toLocaleString()} tokens`);
-    channel.appendLine(`实际最大token: ${result.actualMaxTokens.toLocaleString()} tokens`);
-    channel.appendLine(`测试时间: ${(result.totalTestTime / 1000).toFixed(1)}秒`);
-    
-    channel.appendLine(`\n📈 性能指标`);
-    channel.appendLine(`成功率: ${result.successRate.toFixed(1)}%`);
-    channel.appendLine(`平均响应时间: ${result.averageResponseTime.toFixed(0)}ms`);
-    channel.appendLine(`总成本: $${result.totalCost.toFixed(4)}`);
-    channel.appendLine(`吞吐量: ${result.performanceMetrics.throughput.toFixed(1)} tokens/秒`);
-    channel.appendLine(`错误率: ${result.performanceMetrics.errorRate.toFixed(1)}%`);
-    
-    channel.appendLine(`\n🎯 精度评估`);
-    channel.appendLine(`精度: ${result.precisionAssessment.precisionPercentage.toFixed(1)}%`);
-    channel.appendLine(`是否达到精度要求: ${result.precisionAssessment.isPrecise ? '是' : '否'}`);
-    channel.appendLine(`置信区间: ${result.precisionAssessment.confidenceInterval.min.toLocaleString()} - ${result.precisionAssessment.confidenceInterval.max.toLocaleString()} tokens`);
-    
-    channel.appendLine(`\n⏱️ 延迟分布`);
-    channel.appendLine(`P50: ${result.performanceMetrics.latencyDistribution.p50}ms`);
-    channel.appendLine(`P90: ${result.performanceMetrics.latencyDistribution.p90}ms`);
-    channel.appendLine(`P95: ${result.performanceMetrics.latencyDistribution.p95}ms`);
-    channel.appendLine(`P99: ${result.performanceMetrics.latencyDistribution.p99}ms`);
-    
-    channel.appendLine(`\n📋 测试步骤详情`);
-    channel.appendLine('-'.repeat(40));
-    result.steps.forEach((step, index) => {
-      const status = step.result === 'success' ? '✅' : step.result === 'failure' ? '❌' : '⚠️';
-      channel.appendLine(
-        `${status} 步骤${step.stepNumber}: ${step.totalTokenCount.toLocaleString()} tokens ` +
-        `(${step.responseTime}ms, $${step.estimatedCost.toFixed(4)})`
-      );
-      
-      if (step.errorMessage && index < 5) { // 只显示前5个错误
-        channel.appendLine(`   错误: ${step.errorMessage}`);
+
+    // 显示每个模型的结果
+    results.forEach((result, index) => {
+      channel.appendLine(`\n📊 模型 ${index + 1}: ${result.model}`);
+      channel.appendLine('-'.repeat(40));
+      channel.appendLine(`Token数量: ${result.tokens.toLocaleString()}`);
+      channel.appendLine(`最大Token限制: ${result.maxTokens.toLocaleString()}`);
+      channel.appendLine(`利用率: ${result.utilization.toFixed(1)}%`);
+
+      if (result.cost !== undefined) {
+        channel.appendLine(`估算成本: $${result.cost.toFixed(4)}`);
+      }
+
+      const statusIcon = result.status === 'ok' ? '✅' : result.status === 'warning' ? '⚠️' : '❌';
+      channel.appendLine(`状态: ${statusIcon} ${result.status.toUpperCase()}`);
+
+      if (result.message) {
+        channel.appendLine(`提示: ${result.message}`);
       }
     });
-    
-    if (result.steps.length > 10) {
-      channel.appendLine(`... 还有 ${result.steps.length - 10} 个步骤`);
+
+    // 显示总体统计
+    const totalTokens = results.reduce((sum, r) => sum + r.tokens, 0);
+    const totalCost = results.reduce((sum, r) => sum + (r.cost || 0), 0);
+    const avgUtilization = results.reduce((sum, r) => sum + r.utilization, 0) / results.length;
+
+    channel.appendLine(`\n📈 总体统计`);
+    channel.appendLine('-'.repeat(40));
+    channel.appendLine(`总Token数量: ${totalTokens.toLocaleString()}`);
+    channel.appendLine(`平均利用率: ${avgUtilization.toFixed(1)}%`);
+    if (totalCost > 0) {
+      channel.appendLine(`总估算成本: $${totalCost.toFixed(4)}`);
     }
+
+    const okCount = results.filter(r => r.status === 'ok').length;
+    const warningCount = results.filter(r => r.status === 'warning').length;
+    const errorCount = results.filter(r => r.status === 'error').length;
+
+    channel.appendLine(`\n📊 状态分布`);
+    channel.appendLine('-'.repeat(40));
+    channel.appendLine(`✅ 正常: ${okCount} 个模型`);
+    channel.appendLine(`⚠️ 警告: ${warningCount} 个模型`);
+    channel.appendLine(`❌ 错误: ${errorCount} 个模型`);
   }
-  
+
   /**
    * 生成详细报告
    */
-  private async generateDetailedReport(result: ImprovedTokenProbeResult): Promise<void> {
-    const reportContent = this.generateReportContent(result);
-    
+  private async generateDetailedReport(results: ImprovedTokenProbeResult[]): Promise<void> {
+    const reportContent = this.generateReportContent(results);
+
     const doc = await vscode.workspace.openTextDocument({
       content: reportContent,
-      language: 'markdown'
+      language: 'markdown',
     });
-    
+
     await vscode.window.showTextDocument(doc);
   }
-  
+
   /**
    * 生成报告内容
    */
-  private generateReportContent(result: ImprovedTokenProbeResult): string {
+  private generateReportContent(results: ImprovedTokenProbeResult[]): string {
     const timestamp = new Date().toLocaleString();
-    
-    return `# Token Probe 详细报告\n\n` +
-           `**模型:** ${result.model}  \n` +
-           `**测试时间:** ${timestamp}  \n` +
-           `**测试耗时:** ${(result.totalTestTime / 1000).toFixed(1)}秒  \n\n` +
-           
-           `## 📊 测试结果概览\n\n` +
-           `| 指标 | 数值 |\n` +
-           `|------|------|\n` +
-           `| 理论最大上下文 | ${result.maxContextLength.toLocaleString()} tokens |\n` +
-           `| 实际最大token | ${result.actualMaxTokens.toLocaleString()} tokens |\n` +
-           `| 成功率 | ${result.successRate.toFixed(1)}% |\n` +
-           `| 平均响应时间 | ${result.averageResponseTime.toFixed(0)}ms |\n` +
-           `| 总成本 | $${result.totalCost.toFixed(4)} |\n` +
-           `| 吞吐量 | ${result.performanceMetrics.throughput.toFixed(1)} tokens/秒 |\n` +
-           `| 错误率 | ${result.performanceMetrics.errorRate.toFixed(1)}% |\n\n` +
-           
-           `## 🎯 精度分析\n\n` +
-           `- **精度百分比:** ${result.precisionAssessment.precisionPercentage.toFixed(1)}%\n` +
-           `- **是否达到精度要求:** ${result.precisionAssessment.isPrecise ? '✅ 是' : '❌ 否'}\n` +
-           `- **置信区间:** ${result.precisionAssessment.confidenceInterval.min.toLocaleString()} - ${result.precisionAssessment.confidenceInterval.max.toLocaleString()} tokens\n\n` +
-           
-           `## ⏱️ 性能指标\n\n` +
-           `### 延迟分布\n\n` +
-           `| 百分位 | 延迟 |\n` +
-           `|--------|------|\n` +
-           `| P50 | ${result.performanceMetrics.latencyDistribution.p50}ms |\n` +
-           `| P90 | ${result.performanceMetrics.latencyDistribution.p90}ms |\n` +
-           `| P95 | ${result.performanceMetrics.latencyDistribution.p95}ms |\n` +
-           `| P99 | ${result.performanceMetrics.latencyDistribution.p99}ms |\n\n` +
-           
-           `## 📋 详细测试步骤\n\n` +
-           `| 步骤 | Token数量 | 输入Tokens | 输出Tokens | 结果 | 响应时间 | 成本 |\n` +
-           `|------|-----------|------------|------------|------|----------|------|\n` +
-           result.steps.map(step => 
-             `| ${step.stepNumber} | ${step.totalTokenCount.toLocaleString()} | ${step.inputTokenCount.toLocaleString()} | ${step.actualOutputTokenCount || 'N/A'} | ${step.result === 'success' ? '✅' : step.result === 'failure' ? '❌' : '⚠️'} | ${step.responseTime}ms | $${step.estimatedCost.toFixed(4)} |`
-           ).join('\n') + '\n\n' +
-           
-           `## 📈 成本分析\n\n` +
-           `- **总成本:** $${result.totalCost.toFixed(4)}\n` +
-           `- **平均每步成本:** $${(result.totalCost / result.steps.length).toFixed(4)}\n` +
-           `- **成功步骤成本:** $${result.steps.filter(s => s.result === 'success').reduce((sum, s) => sum + s.estimatedCost, 0).toFixed(4)}\n\n` +
-           
-           `## 🔍 错误分析\n\n` +
-           result.steps.filter(step => step.errorMessage).map(step => 
-             `- **步骤${step.stepNumber}:** ${step.errorMessage}`
-           ).join('\n') + '\n\n' +
-           
-           `---\n` +
-           `*报告由 AI Agent Improved Token Probe 自动生成于 ${timestamp}*`;
+    const totalTokens = results.reduce((sum, r) => sum + r.tokens, 0);
+    const totalCost = results.reduce((sum, r) => sum + (r.cost || 0), 0);
+    const avgUtilization = results.reduce((sum, r) => sum + r.utilization, 0) / results.length;
+
+    let content =
+      `# Token Probe 详细报告\n\n` +
+      `**测试时间:** ${timestamp}  \n` +
+      `**测试模型数量:** ${results.length}  \n` +
+      `**总Token数量:** ${totalTokens.toLocaleString()}  \n\n` +
+      `## 📊 测试结果概览\n\n` +
+      `| 指标 | 数值 |\n` +
+      `|------|------|\n` +
+      `| 总Token数量 | ${totalTokens.toLocaleString()} tokens |\n` +
+      `| 平均利用率 | ${avgUtilization.toFixed(1)}% |\n`;
+
+    if (totalCost > 0) {
+      content += `| 总估算成本 | $${totalCost.toFixed(4)} |\n`;
+    }
+
+    content += `\n## 📋 各模型详细结果\n\n`;
+
+    results.forEach((result, index) => {
+      const statusIcon = result.status === 'ok' ? '✅' : result.status === 'warning' ? '⚠️' : '❌';
+      content +=
+        `### ${index + 1}. ${result.model} ${statusIcon}\n\n` +
+        `| 指标 | 数值 |\n` +
+        `|------|------|\n` +
+        `| Token数量 | ${result.tokens.toLocaleString()} |\n` +
+        `| 最大Token限制 | ${result.maxTokens.toLocaleString()} |\n` +
+        `| 利用率 | ${result.utilization.toFixed(1)}% |\n` +
+        `| 状态 | ${result.status.toUpperCase()} |\n`;
+
+      if (result.cost !== undefined) {
+        content += `| 估算成本 | $${result.cost.toFixed(4)} |\n`;
+      }
+
+      if (result.message) {
+        content += `\n**提示:** ${result.message}\n`;
+      }
+
+      content += `\n`;
+    });
+
+    // 添加总结信息
+    const okCount = results.filter(r => r.status === 'ok').length;
+    const warningCount = results.filter(r => r.status === 'warning').length;
+    const errorCount = results.filter(r => r.status === 'error').length;
+
+    content +=
+      `## 📊 状态分布\n\n` +
+      `- ✅ **正常:** ${okCount} 个模型\n` +
+      `- ⚠️ **警告:** ${warningCount} 个模型\n` +
+      `- ❌ **错误:** ${errorCount} 个模型\n\n`;
+
+    if (totalCost > 0) {
+      content +=
+        `## 📈 成本分析\n\n` +
+        `- **总估算成本:** $${totalCost.toFixed(4)}\n` +
+        `- **平均每模型成本:** $${(totalCost / results.length).toFixed(4)}\n\n`;
+    }
+
+    // 添加警告和错误的详细信息
+    const problemResults = results.filter(r => r.status !== 'ok');
+    if (problemResults.length > 0) {
+      content += `## 🔍 问题分析\n\n`;
+      problemResults.forEach(result => {
+        const statusIcon = result.status === 'warning' ? '⚠️' : '❌';
+        content += `- ${statusIcon} **${result.model}:** ${result.message || '未知问题'}\n`;
+      });
+      content += `\n`;
+    }
+
+    content += `---\n` + `*报告由 AI Agent Improved Token Probe 自动生成于 ${timestamp}*`;
+
+    return content;
   }
-  
+
   /**
    * 显示Token使用统计
    */
   async showTokenUsageStats(): Promise<void> {
     const stats = this.llmMonitor.getUsageStats();
-    
+
     const panel = vscode.window.createWebviewPanel(
       'tokenStats',
       'Token 使用统计',
       vscode.ViewColumn.One,
       {
         enableScripts: true,
-        retainContextWhenHidden: true
+        retainContextWhenHidden: true,
       }
     );
-    
+
     panel.webview.html = this.generateStatsWebview(stats);
   }
-  
+
   /**
    * 生成统计Webview
    */
@@ -770,7 +812,7 @@ export class ImprovedTokenProbeCommand {
       </html>
     `;
   }
-  
+
   /**
    * 导出Token报告
    */
@@ -778,30 +820,31 @@ export class ImprovedTokenProbeCommand {
     try {
       const stats = this.llmMonitor.getUsageStats();
       const report = this.llmMonitor.generateReport();
-      
+
       const saveUri = await vscode.window.showSaveDialog({
-        defaultUri: vscode.Uri.file(`token-usage-report-${new Date().toISOString().split('T')[0]}.json`),
+        defaultUri: vscode.Uri.file(
+          `token-usage-report-${new Date().toISOString().split('T')[0]}.json`
+        ),
         filters: {
           'JSON Files': ['json'],
-          'All Files': ['*']
-        }
+          'All Files': ['*'],
+        },
       });
-      
+
       if (saveUri) {
         const reportData = {
           timestamp: new Date().toISOString(),
           stats,
-          report
+          report,
         };
-        
+
         await vscode.workspace.fs.writeFile(
           saveUri,
           Buffer.from(JSON.stringify(reportData, null, 2), 'utf8')
         );
-        
+
         vscode.window.showInformationMessage(`Token使用报告已导出到: ${saveUri.fsPath}`);
       }
-      
     } catch (error) {
       vscode.window.showErrorMessage(`导出报告失败: ${error}`);
     }

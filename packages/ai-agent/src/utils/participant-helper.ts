@@ -21,7 +21,10 @@ export class ParticipantHelper {
     commandType: keyof typeof COMMON_COMMANDS,
     description: string
   ): string {
-    const commands = ParticipantsConfigManager.generateCommandHelp(participantId, COMMON_COMMANDS[commandType]);
+    const commands = ParticipantsConfigManager.generateCommandHelp(
+      participantId,
+      COMMON_COMMANDS[commandType]
+    );
     return commands.map(cmd => `- ${cmd} - ${description}`).join('\n');
   }
 
@@ -35,7 +38,10 @@ export class ParticipantHelper {
     participantId: keyof typeof import('../config/participants-config').PARTICIPANTS_CONFIG,
     commandType: keyof typeof COMMON_COMMANDS
   ): string {
-    const commands = ParticipantsConfigManager.generateCommandHelp(participantId, COMMON_COMMANDS[commandType]);
+    const commands = ParticipantsConfigManager.generateCommandHelp(
+      participantId,
+      COMMON_COMMANDS[commandType]
+    );
     return commands[0] || '';
   }
 
@@ -75,11 +81,16 @@ export class ParticipantHelper {
       description: string;
     }[]
   ): string {
-    return sections.map(section => {
-      const commands = ParticipantsConfigManager.generateCommandHelp(participantId, COMMON_COMMANDS[section.commandType]);
-      const commandList = commands.map(cmd => `- ${cmd} - ${section.description}`).join('\n');
-      return `### ${section.title}\n\n${commandList}\n`;
-    }).join('\n');
+    return sections
+      .map(section => {
+        const commands = ParticipantsConfigManager.generateCommandHelp(
+          participantId,
+          COMMON_COMMANDS[section.commandType]
+        );
+        const commandList = commands.map(cmd => `- ${cmd} - ${section.description}`).join('\n');
+        return `### ${section.title}\n\n${commandList}\n`;
+      })
+      .join('\n');
   }
 
   /**
@@ -96,10 +107,12 @@ export class ParticipantHelper {
       commandType: keyof typeof COMMON_COMMANDS;
     }[]
   ): string {
-    return actions.map(action => {
-      const command = this.getCommandReference(participantId, action.commandType);
-      return `- ${action.icon} **${action.label}**: ${command}`;
-    }).join('\n');
+    return actions
+      .map(action => {
+        const command = this.getCommandReference(participantId, action.commandType);
+        return `- ${action.icon} **${action.label}**: ${command}`;
+      })
+      .join('\n');
   }
 }
 
@@ -115,55 +128,55 @@ export const HELP_TEMPLATES = {
       {
         title: '📋 项目分析',
         commandType: 'ANALYZE_PROJECT' as const,
-        description: '项目结构和代码分析'
+        description: '项目结构和代码分析',
       },
       {
         title: '🎯 质量检查',
         commandType: 'QUALITY_CHECK' as const,
-        description: '代码质量评估'
+        description: '代码质量评估',
       },
       {
         title: '📊 报告生成',
         commandType: 'GENERATE_REPORT' as const,
-        description: '生成分析报告'
+        description: '生成分析报告',
       },
       {
         title: '⚠️ 问题诊断',
         commandType: 'SHOW_ISSUES' as const,
-        description: '显示代码问题'
+        description: '显示代码问题',
       },
       {
         title: '📈 统计信息',
         commandType: 'SHOW_STATS' as const,
-        description: '项目统计信息'
-      }
+        description: '项目统计信息',
+      },
     ],
     quickActions: [
       {
         icon: '🔍',
         label: '分析项目',
-        commandType: 'ANALYZE_PROJECT' as const
+        commandType: 'ANALYZE_PROJECT' as const,
       },
       {
         icon: '🎯',
         label: '质量检查',
-        commandType: 'QUALITY_CHECK' as const
+        commandType: 'QUALITY_CHECK' as const,
       },
       {
         icon: '📊',
         label: '生成报告',
-        commandType: 'GENERATE_REPORT' as const
+        commandType: 'GENERATE_REPORT' as const,
       },
       {
         icon: '⚠️',
         label: '显示问题',
-        commandType: 'SHOW_ISSUES' as const
+        commandType: 'SHOW_ISSUES' as const,
       },
       {
         icon: '📈',
         label: '查看统计',
-        commandType: 'SHOW_STATS' as const
-      }
-    ]
-  }
+        commandType: 'SHOW_STATS' as const,
+      },
+    ],
+  },
 };

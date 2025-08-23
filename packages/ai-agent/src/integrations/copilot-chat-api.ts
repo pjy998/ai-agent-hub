@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { outputManager } from '../utils/output-manager';
 
 /**
  * GitHub Copilot Chat API 请求接口
@@ -80,9 +81,9 @@ export class CopilotChatAPI {
   private copilotExtension: vscode.Extension<any> | undefined;
   private copilotApi: any;
   private isInitialized: boolean = false;
-  
+
   private constructor() {}
-  
+
   /**
    * 获取单例实例
    */
@@ -92,7 +93,7 @@ export class CopilotChatAPI {
     }
     return CopilotChatAPI.instance;
   }
-  
+
   /**
    * 初始化API
    */
@@ -100,35 +101,36 @@ export class CopilotChatAPI {
     if (this.isInitialized) {
       return;
     }
-    
+
     try {
       // 查找GitHub Copilot Chat扩展
       this.copilotExtension = vscode.extensions.getExtension('GitHub.copilot-chat');
-      
+
       if (!this.copilotExtension) {
         throw new Error('GitHub Copilot Chat扩展未安装。请安装GitHub Copilot Chat扩展后重试。');
       }
-      
+
       // 激活扩展
       if (!this.copilotExtension.isActive) {
         await this.copilotExtension.activate();
       }
-      
+
       // 获取API
       this.copilotApi = this.copilotExtension.exports;
-      
+
       if (!this.copilotApi) {
         throw new Error('无法获取GitHub Copilot Chat API。请确保扩展正常工作。');
       }
-      
+
       this.isInitialized = true;
-      
     } catch (error) {
       this.isInitialized = false;
-      throw new Error(`初始化GitHub Copilot Chat API失败: ${error instanceof Error ? error.message : String(error)}`);
+      throw new Error(
+        `初始化GitHub Copilot Chat API失败: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
-  
+
   /**
    * 检查是否可用
    */
@@ -140,34 +142,33 @@ export class CopilotChatAPI {
       return false;
     }
   }
-  
+
   /**
    * 发送请求
    */
   async sendRequest(request: CopilotChatRequest): Promise<CopilotChatResponse> {
     await this.initialize();
-    
+
     if (!this.copilotApi) {
       throw new Error('GitHub Copilot Chat API未初始化');
     }
-    
+
     try {
       // 验证请求参数
       this.validateRequest(request);
-      
+
       // 发送请求
       const response = await this.makeRequest(request);
-      
+
       // 验证响应
       this.validateResponse(response);
-      
+
       return response;
-      
     } catch (error) {
       throw this.handleError(error);
     }
   }
-  
+
   /**
    * 验证请求参数
    */
@@ -175,33 +176,33 @@ export class CopilotChatAPI {
     if (!request.model) {
       throw new Error('模型参数不能为空');
     }
-    
+
     if (!request.messages || request.messages.length === 0) {
       throw new Error('消息列表不能为空');
     }
-    
+
     // 验证消息格式
     for (const message of request.messages) {
       if (!message.role || !message.content) {
         throw new Error('消息格式无效：role和content字段是必需的');
       }
-      
+
       if (!['system', 'user', 'assistant'].includes(message.role)) {
         throw new Error(`无效的消息角色: ${message.role}`);
       }
     }
-    
+
     // 验证token限制
     if (request.max_tokens && (request.max_tokens < 1 || request.max_tokens > 4096)) {
       throw new Error('max_tokens必须在1-4096之间');
     }
-    
+
     // 验证温度参数
     if (request.temperature && (request.temperature < 0 || request.temperature > 2)) {
       throw new Error('temperature必须在0-2之间');
     }
   }
-  
+
   /**
    * 发送实际请求
    */
@@ -211,11 +212,11 @@ export class CopilotChatAPI {
       () => this.tryDirectAPI(request),
       () => this.tryChatAPI(request),
       () => this.tryLanguageModelAPI(request),
-      () => this.tryFallbackAPI(request)
+      () => this.tryFallbackAPI(request),
     ];
-    
+
     let lastError: Error | null = null;
-    
+
     for (const method of apiMethods) {
       try {
         const response = await method();
@@ -224,13 +225,13 @@ export class CopilotChatAPI {
         }
       } catch (error) {
         lastError = error instanceof Error ? error : new Error(String(error));
-        console.warn(`API方法失败:`, lastError.message);
+        outputManager.logWarning(`API方法失败: ${lastError.message}`);
       }
     }
-    
+
     throw lastError || new Error('所有API调用方法都失败了');
   }
-  
+
   /**
    * 尝试直接API调用
    */
@@ -240,7 +241,7 @@ export class CopilotChatAPI {
     }
     throw new Error('sendRequest方法不可用');
   }
-  
+
   /**
    * 尝试Chat API调用
    */
@@ -250,7 +251,7 @@ export class CopilotChatAPI {
     }
     throw new Error('chat.sendRequest方法不可用');
   }
-  
+
   /**
    * 尝试Language Model API调用
    */
@@ -259,49 +260,51 @@ export class CopilotChatAPI {
     if (vscode.lm && vscode.lm.selectChatModels) {
       const models = await vscode.lm.selectChatModels({
         vendor: 'copilot',
-        family: request.model
+        family: request.model,
       });
-      
+
       if (models.length > 0) {
         const model = models[0];
         const chatRequest = await model.sendRequest(
           request.messages.map(msg => vscode.LanguageModelChatMessage.User(msg.content)),
           {}
         );
-        
+
         // 转换响应格式
         let content = '';
         for await (const fragment of chatRequest.text) {
           content += fragment;
         }
-        
+
         return {
-          choices: [{
-            message: {
-              role: 'assistant',
-              content: content
+          choices: [
+            {
+              message: {
+                role: 'assistant',
+                content: content,
+              },
+              finish_reason: 'stop',
+              index: 0,
             },
-            finish_reason: 'stop',
-            index: 0
-          }],
+          ],
           model: request.model,
-          created: Date.now()
+          created: Date.now(),
         };
       }
     }
-    
+
     throw new Error('Language Model API不可用');
   }
-  
+
   /**
    * 尝试备用API调用
    */
   private async tryFallbackAPI(request: CopilotChatRequest): Promise<CopilotChatResponse> {
     // 如果所有真实API都失败，使用模拟API进行测试
-    console.warn('使用模拟API进行测试');
+    outputManager.logWarning('使用模拟API进行测试');
     return this.createMockResponse(request);
   }
-  
+
   /**
    * 创建模拟响应
    */
@@ -312,35 +315,42 @@ export class CopilotChatAPI {
       'gpt-4': 8192,
       'gpt-3.5-turbo': 4096,
       'claude-3-sonnet': 200000,
-      'claude-3-haiku': 200000
+      'claude-3-haiku': 200000,
     };
-    
+
     const limit = modelLimits[request.model] || 8192;
-    const estimatedTokens = request.messages.reduce((sum, msg) => sum + Math.ceil(msg.content.length / 3), 0);
-    
+    const estimatedTokens = request.messages.reduce(
+      (sum, msg) => sum + Math.ceil(msg.content.length / 3),
+      0
+    );
+
     if (estimatedTokens > limit) {
-      throw new Error(`Token limit exceeded. Model ${request.model} supports up to ${limit} tokens, but ${estimatedTokens} tokens were provided.`);
+      throw new Error(
+        `Token limit exceeded. Model ${request.model} supports up to ${limit} tokens, but ${estimatedTokens} tokens were provided.`
+      );
     }
-    
+
     return {
-      choices: [{
-        message: {
-          role: 'assistant',
-          content: `这是一个模拟响应。模型: ${request.model}, 估计token数: ${estimatedTokens}, 限制: ${limit}`
+      choices: [
+        {
+          message: {
+            role: 'assistant',
+            content: `这是一个模拟响应。模型: ${request.model}, 估计token数: ${estimatedTokens}, 限制: ${limit}`,
+          },
+          finish_reason: 'stop',
+          index: 0,
         },
-        finish_reason: 'stop',
-        index: 0
-      }],
+      ],
       usage: {
         prompt_tokens: estimatedTokens,
         completion_tokens: 50,
-        total_tokens: estimatedTokens + 50
+        total_tokens: estimatedTokens + 50,
       },
       model: request.model,
-      created: Date.now()
+      created: Date.now(),
     };
   }
-  
+
   /**
    * 验证响应
    */
@@ -348,24 +358,24 @@ export class CopilotChatAPI {
     if (!response) {
       throw new Error('响应为空');
     }
-    
+
     if (!response.choices || !Array.isArray(response.choices) || response.choices.length === 0) {
       throw new Error('响应格式无效：缺少choices字段');
     }
-    
+
     const choice = response.choices[0];
     if (!choice.message || !choice.message.content) {
       throw new Error('响应格式无效：缺少message.content字段');
     }
   }
-  
+
   /**
    * 处理错误
    */
   private handleError(error: any): Error {
     if (error instanceof Error) {
       const message = error.message.toLowerCase();
-      
+
       // 检查常见的token限制错误
       const tokenLimitPatterns = [
         'token limit exceeded',
@@ -375,26 +385,26 @@ export class CopilotChatAPI {
         'too many tokens',
         'input too long',
         'context_length_exceeded',
-        'max_tokens_exceeded'
+        'max_tokens_exceeded',
       ];
-      
+
       if (tokenLimitPatterns.some(pattern => message.includes(pattern))) {
         return new Error(`Token limit exceeded: ${error.message}`);
       }
-      
+
       // 检查认证错误
       const authPatterns = [
         'unauthorized',
         'authentication',
         'api key',
         'access denied',
-        'forbidden'
+        'forbidden',
       ];
-      
+
       if (authPatterns.some(pattern => message.includes(pattern))) {
         return new Error(`Authentication error: ${error.message}`);
       }
-      
+
       // 检查网络错误
       const networkPatterns = [
         'network',
@@ -402,97 +412,87 @@ export class CopilotChatAPI {
         'connection',
         'fetch',
         'econnreset',
-        'enotfound'
+        'enotfound',
       ];
-      
+
       if (networkPatterns.some(pattern => message.includes(pattern))) {
         return new Error(`Network error: ${error.message}`);
       }
-      
+
       // 检查模型不可用错误
       const modelPatterns = [
         'model not found',
         'invalid model',
         'model unavailable',
-        'unsupported model'
+        'unsupported model',
       ];
-      
+
       if (modelPatterns.some(pattern => message.includes(pattern))) {
         return new Error(`Model error: ${error.message}`);
       }
-      
+
       return error;
     }
-    
+
     return new Error(`Unknown error: ${String(error)}`);
   }
-  
+
   /**
    * 获取支持的模型列表
    */
   async getSupportedModels(): Promise<string[]> {
     try {
       await this.initialize();
-      
+
       // 尝试从API获取模型列表
       if (this.copilotApi.getModels) {
         return await this.copilotApi.getModels();
       }
-      
+
       // 如果API不支持，返回默认模型列表
-      return [
-        'gpt-4.1',
-        'gpt-4',
-        'gpt-3.5-turbo',
-        'claude-3-sonnet',
-        'claude-3-haiku'
-      ];
-      
+      return ['gpt-4.1', 'gpt-4', 'gpt-3.5-turbo', 'claude-3-sonnet', 'claude-3-haiku'];
     } catch (error) {
-      console.warn('获取模型列表失败，使用默认列表:', error);
-      return [
-        'gpt-4.1',
-        'gpt-4',
-        'gpt-3.5-turbo'
-      ];
+      outputManager.logWarning(`获取模型列表失败，使用默认列表: ${error}`);
+      return ['gpt-4.1', 'gpt-4', 'gpt-3.5-turbo'];
     }
   }
-  
+
   /**
    * 测试API连接
    */
   async testConnection(): Promise<{ success: boolean; message: string; models?: string[] }> {
     try {
       await this.initialize();
-      
+
       // 发送简单的测试请求
       const testRequest: CopilotChatRequest = {
         model: 'gpt-3.5-turbo',
-        messages: [{
-          role: 'user',
-          content: 'Hello'
-        }],
-        max_tokens: 10
+        messages: [
+          {
+            role: 'user',
+            content: 'Hello',
+          },
+        ],
+        max_tokens: 10,
       };
-      
+
       await this.sendRequest(testRequest);
-      
+
       const models = await this.getSupportedModels();
-      
+
       return {
         success: true,
         message: 'GitHub Copilot Chat API连接成功',
-        models
+        models,
       };
-      
     } catch (error) {
       return {
         success: false,
-        message: error instanceof Error ? error.message : String(error)
+        message: error instanceof Error ? error.message : String(error),
       };
     }
   }
-  
+
   /**
    * 重置API状态
    */
@@ -521,7 +521,11 @@ export async function isCopilotChatAvailable(): Promise<boolean> {
 /**
  * 测试GitHub Copilot Chat连接
  */
-export async function testCopilotChatConnection(): Promise<{ success: boolean; message: string; models?: string[] }> {
+export async function testCopilotChatConnection(): Promise<{
+  success: boolean;
+  message: string;
+  models?: string[];
+}> {
   const api = getCopilotChatAPI();
   return await api.testConnection();
 }

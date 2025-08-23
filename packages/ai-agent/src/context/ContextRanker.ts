@@ -1,4 +1,4 @@
-import { ContextItem } from './collector';
+import { ContextItem } from './ContextCollector';
 
 export interface RankingCriteria {
   relevanceWeight: number;
@@ -19,7 +19,7 @@ export class ContextRanker {
     relevanceWeight: 0.4,
     recencyWeight: 0.2,
     importanceWeight: 0.3,
-    typeWeight: 0.1
+    typeWeight: 0.1,
   };
 
   private finalCriteria: RankingCriteria;
@@ -30,14 +30,14 @@ export class ContextRanker {
 
   rankContextItems(items: ContextItem[], query?: string): RankedContext[] {
     const scoredItems = items.map(item => this.scoreItem(item, query));
-    
+
     // Sort by final score (descending)
     scoredItems.sort((a, b) => b.finalScore - a.finalScore);
-    
+
     // Add ranking numbers
     return scoredItems.map((item, index) => ({
       ...item,
-      ranking: index + 1
+      ranking: index + 1,
     }));
   }
 
@@ -99,7 +99,7 @@ export class ContextRanker {
       item,
       finalScore: Math.min(finalScore, 1.0),
       ranking: 0, // Will be set later
-      reasons
+      reasons,
     };
   }
 
@@ -244,7 +244,8 @@ export class ContextRanker {
     if (depName.includes('vscode')) score += 0.4;
     if (depName.includes('typescript')) score += 0.3;
     if (depName.includes('@types')) score += 0.2;
-    if (depName.includes('react') || depName.includes('vue') || depName.includes('angular')) score += 0.2;
+    if (depName.includes('react') || depName.includes('vue') || depName.includes('angular'))
+      score += 0.2;
 
     // Development vs production
     if (!item.metadata.isDev) score += 0.1;
@@ -255,18 +256,23 @@ export class ContextRanker {
   private calculateTypeScore(item: ContextItem): number {
     // Type-based scoring
     switch (item.type) {
-      case 'file': return 0.8;
-      case 'symbol': return 0.7;
-      case 'directory': return 0.5;
-      case 'dependency': return 0.6;
-      default: return 0.5;
+      case 'file':
+        return 0.8;
+      case 'symbol':
+        return 0.7;
+      case 'directory':
+        return 0.5;
+      case 'dependency':
+        return 0.6;
+      default:
+        return 0.5;
     }
   }
 
   // Utility methods for advanced ranking
   groupByType(rankedItems: RankedContext[]): Record<string, RankedContext[]> {
     const groups: Record<string, RankedContext[]> = {};
-    
+
     for (const item of rankedItems) {
       const type = item.item.type;
       if (!groups[type]) {
@@ -274,7 +280,7 @@ export class ContextRanker {
       }
       groups[type].push(item);
     }
-    
+
     return groups;
   }
 
@@ -286,12 +292,12 @@ export class ContextRanker {
   } {
     const scores = rankedItems.map(item => item.finalScore);
     scores.sort((a, b) => a - b);
-    
+
     return {
       min: scores[0] || 0,
       max: scores[scores.length - 1] || 0,
       average: scores.reduce((sum, score) => sum + score, 0) / scores.length || 0,
-      median: scores[Math.floor(scores.length / 2)] || 0
+      median: scores[Math.floor(scores.length / 2)] || 0,
     };
   }
 

@@ -1,202 +1,233 @@
 {
   "name": "ai-agent-vscode",
   "displayName": "AI Agent Hub",
-  "description": "AI编程助手扩展：提供项目分析、C#代码规范检查、Token使用监控等功能。集成GitHub Copilot Chat，支持代码质量评估和报告生成。",
+  "description": "AI-powered development assistant with intelligent code analysis, project scanning, and automated optimization suggestions",
   "version": "0.0.27",
-  "publisher": "jieky",
+  "publisher": "ai-agent-hub",
+  "type": "module",
   "engines": {
     "vscode": "^1.74.0"
   },
   "categories": [
-    "Programming Languages",
-    "Linters",
-    "Other"
+    "Other",
+    "Machine Learning",
+    "Snippets",
+    "Formatters"
   ],
   "keywords": [
     "ai",
     "assistant",
-    "coding",
-    "analysis",
-    "csharp",
-    "standards",
-    "refactor",
-    "copilot",
-    "mcp",
-    "automation"
+    "code-analysis",
+    "project-scanning",
+    "optimization",
+    "intelligent",
+    "automation",
+    "development",
+    "productivity",
+    "chatgpt",
+    "openai",
+    "claude",
+    "anthropic"
   ],
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/pjy998/ai-agent-hub.git"
-  },
-  "bugs": {
-    "url": "https://github.com/pjy998/ai-agent-hub/issues"
-  },
-  "homepage": "https://github.com/pjy998/ai-agent-hub#readme",
-  "license": "MIT",
-  "icon": "icon.png",
-  "galleryBanner": {
-    "color": "#1e1e1e",
-    "theme": "dark"
-  },
   "activationEvents": [
-    "onStartupFinished",
-    "onLanguage"
+    "onStartupFinished"
   ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "ai-agent-hub.analyzeSelf",
-        "title": "AI Agent Hub: Analyze Self",
+        "command": "ai-agent-hub.scanProject",
+        "title": "AI Agent: Scan Project",
+        "category": "AI Agent Hub"
+      },
+
+      {
+        "command": "ai-agent-hub.analyzeCode",
+        "title": "AI Agent: Analyze Code",
         "category": "AI Agent Hub"
       },
       {
         "command": "ai-agent-hub.generateReport",
-        "title": "AI Agent Hub: Generate Analysis Report",
+        "title": "AI Agent: Generate Analysis Report",
         "category": "AI Agent Hub"
       },
       {
-        "command": "ai-agent-hub.viewRecommendations",
-        "title": "AI Agent Hub: View Recommendations",
+        "command": "ai-agent-hub.showTransparencyReport",
+        "title": "AI Agent: Show Transparency Report",
         "category": "AI Agent Hub"
       },
       {
-        "command": "ai-agent.tokenProbe",
-        "title": "AI Agent: Token Probe",
-        "category": "AI Agent"
+        "command": "ai-agent-hub.exportInteractionData",
+        "title": "AI Agent: Export Interaction Data",
+        "category": "AI Agent Hub"
       },
       {
-        "command": "ai-agent.tokenProbeQuick",
-        "title": "AI Agent: Token Probe (Quick Test)",
-        "category": "AI Agent"
+        "command": "ai-agent-hub.probeTokens",
+        "title": "AI Agent: Probe Tokens",
+        "category": "AI Agent Hub"
       },
       {
-        "command": "ai-agent.tokenProbeHistory",
-        "title": "AI Agent: Token Probe History",
-        "category": "AI Agent"
+        "command": "ai-agent-hub.clearCache",
+        "title": "AI Agent: Clear Cache",
+        "category": "AI Agent Hub"
       },
       {
-        "command": "ai-agent.tokenProbeClearHistory",
-        "title": "AI Agent: Clear Token Probe History",
-        "category": "AI Agent"
-      },
-      {
-        "command": "ai-agent.improvedTokenProbe",
-        "title": "AI Agent: Improved Token Probe",
-        "category": "AI Agent"
-      },
-      {
-        "command": "ai-agent.quickTokenProbe",
-        "title": "AI Agent: Quick Token Probe",
-        "category": "AI Agent"
-      },
-      {
-        "command": "ai-agent.customTokenProbe",
-        "title": "AI Agent: Custom Token Probe",
-        "category": "AI Agent"
-      },
-      {
-        "command": "ai-agent.showTokenStats",
-        "title": "AI Agent: Show Token Usage Statistics",
-        "category": "AI Agent"
-      },
-      {
-        "command": "ai-agent.exportTokenReport",
-        "title": "AI Agent: Export Token Usage Report",
-        "category": "AI Agent"
-      },
-      {
-        "command": "ai-agent.analyzeCSharpProject",
-        "title": "AI Agent: Analyze C# Project",
-        "category": "AI Agent"
-      },
-      {
-        "command": "ai-agent.analyzeCSharpFolder",
-        "title": "AI Agent: Analyze C# Folder",
-        "category": "AI Agent"
+        "command": "ai-agent-hub.showSettings",
+        "title": "AI Agent: Show Settings",
+        "category": "AI Agent Hub"
       }
     ],
-    "menus": {
-      "commandPalette": [
-        {
-          "command": "ai-agent-hub.analyzeSelf",
-          "when": "workspaceFolderCount > 0"
+    "configuration": {
+      "title": "AI Agent Hub",
+      "properties": {
+        "ai-agent-hub.enableOptimization": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable performance optimization features"
         },
-        {
-          "command": "ai-agent-hub.generateReport",
-          "when": "workspaceFolderCount > 0"
+        "ai-agent-hub.optimization.enableCache": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable caching for better performance"
         },
-        {
-          "command": "ai-agent-hub.viewRecommendations",
-          "when": "workspaceFolderCount > 0"
+        "ai-agent-hub.optimization.cacheMaxSize": {
+          "type": "number",
+          "default": 1000,
+          "description": "Maximum number of cache entries"
         },
-        {
-          "command": "ai-agent.tokenProbe",
-          "when": "workspaceFolderCount > 0"
+        "ai-agent-hub.optimization.cacheTTL": {
+          "type": "number",
+          "default": 1800000,
+          "description": "Cache time-to-live in milliseconds (30 minutes)"
         },
-        {
-          "command": "ai-agent.tokenProbeQuick",
-          "when": "workspaceFolderCount > 0"
+        "ai-agent-hub.optimization.enableBatching": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable batch processing for AI requests"
         },
-        {
-          "command": "ai-agent.tokenProbeHistory"
+        "ai-agent-hub.optimization.batchSize": {
+          "type": "number",
+          "default": 5,
+          "description": "Number of requests to batch together"
         },
-        {
-          "command": "ai-agent.tokenProbeClearHistory"
+        "ai-agent-hub.optimization.batchTimeout": {
+          "type": "number",
+          "default": 2000,
+          "description": "Batch timeout in milliseconds"
         },
-        {
-          "command": "ai-agent.improvedTokenProbe",
-          "when": "workspaceFolderCount > 0"
+        "ai-agent-hub.optimization.maxRetries": {
+          "type": "number",
+          "default": 3,
+          "description": "Maximum number of retries for failed requests"
         },
-        {
-          "command": "ai-agent.quickTokenProbe",
-          "when": "workspaceFolderCount > 0"
+        "ai-agent-hub.optimization.retryDelay": {
+          "type": "number",
+          "default": 1000,
+          "description": "Delay between retries in milliseconds"
         },
-        {
-          "command": "ai-agent.customTokenProbe",
-          "when": "workspaceFolderCount > 0"
+        "ai-agent-hub.optimization.enableRateLimiting": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable rate limiting for AI requests"
         },
-        {
-          "command": "ai-agent.showTokenStats"
+        "ai-agent-hub.optimization.requestsPerMinute": {
+          "type": "number",
+          "default": 60,
+          "description": "Maximum requests per minute"
         },
-        {
-          "command": "ai-agent.exportTokenReport"
+        "ai-agent-hub.performance.memory.heapWarning": {
+          "type": "number",
+          "default": 200,
+          "description": "Heap memory warning threshold in MB"
         },
-        {
-          "command": "ai-agent.analyzeCSharpProject",
-          "when": "workspaceFolderCount > 0"
+        "ai-agent-hub.performance.memory.heapCritical": {
+          "type": "number",
+          "default": 400,
+          "description": "Heap memory critical threshold in MB"
         },
-        {
-          "command": "ai-agent.analyzeCSharpFolder",
-          "when": "workspaceFolderCount > 0"
+        "ai-agent-hub.performance.memory.rssWarning": {
+          "type": "number",
+          "default": 500,
+          "description": "RSS memory warning threshold in MB"
+        },
+        "ai-agent-hub.performance.memory.rssCritical": {
+          "type": "number",
+          "default": 800,
+          "description": "RSS memory critical threshold in MB"
+        },
+        "ai-agent-hub.performance.timing.fileProcessWarning": {
+          "type": "number",
+          "default": 1000,
+          "description": "File processing warning threshold in milliseconds"
+        },
+        "ai-agent-hub.performance.timing.aiResponseWarning": {
+          "type": "number",
+          "default": 5000,
+          "description": "AI response warning threshold in milliseconds"
+        },
+        "ai-agent-hub.performance.cache.hitRateWarning": {
+          "type": "number",
+          "default": 0.7,
+          "description": "Cache hit rate warning threshold (0.0-1.0)"
+        },
+        "ai-agent-hub.aiProvider": {
+          "type": "string",
+          "enum": [
+            "openai",
+            "anthropic",
+            "azure-openai",
+            "vscode-lm",
+            "local"
+          ],
+          "default": "openai",
+          "description": "AI provider to use for requests"
+        },
+        "ai-agent-hub.openai.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "OpenAI API key"
+        },
+        "ai-agent-hub.openai.model": {
+          "type": "string",
+          "default": "gpt-4",
+          "description": "OpenAI model to use"
+        },
+        "ai-agent-hub.anthropic.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "Anthropic API key"
+        },
+        "ai-agent-hub.anthropic.model": {
+          "type": "string",
+          "default": "claude-3-sonnet-20240229",
+          "description": "Anthropic model to use"
         }
-      ]
+      }
     },
     "chatParticipants": [
       {
+        "id": "ai-agent-hub",
+        "name": "ai-agent-hub",
+        "description": "AI Agent Hub - Intelligent development assistant with project analysis and optimization capabilities",
+        "isSticky": true
+      },
+      {
+        "id": "scan",
+        "name": "scan",
+        "description": "Project scanner for comprehensive codebase analysis - 项目扫描器，用于全面的代码库分析",
+        "isSticky": true
+      },
+      {
         "id": "analyze",
         "name": "analyze",
-        "description": "Project self-analysis assistant"
+        "description": "Code analyzer for intelligent insights and suggestions - 代码分析器，提供智能洞察和建议",
+        "isSticky": true
       },
       {
-        "id": "config",
-        "name": "config",
-        "description": "Dynamic configuration generator for multi-language analysis"
-      },
-      {
-        "id": "token",
-        "name": "token",
-        "description": "Token limit testing and analysis for GitHub Copilot Chat models - 测试和分析模型Token限制"
-      },
-      {
-        "id": "code",
-        "name": "code",
-        "description": "Multi-language code analysis and quality assessment assistant - 多语言代码分析和质量评估助手"
-      },
-      {
-        "id": "report",
-        "name": "report",
-        "description": "Project report generator with multiple formats - 项目报告生成器，支持多种格式"
+        "id": "optimize",
+        "name": "optimize",
+        "description": "Performance optimizer for code and project improvements - 性能优化器，用于代码和项目改进",
+        "isSticky": true
       },
       {
         "id": "recommend",
@@ -207,19 +238,42 @@
     ]
   },
   "scripts": {
+    "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile",
+    "test": "jest",
+    "lint": "eslint src --ext ts",
+    "lint:fix": "eslint src --ext ts --fix",
+    "quality:check": "npm run lint && npm run test",
+    "quality:fix": "npm run lint:fix && npm run test",
+    "quality:full": "npm run lint && npm run test && npm run type-check",
+    "type-check": "tsc --noEmit",
+    "format": "prettier --write \"src/**/*.{ts,js,json}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,js,json}\"",
+    "ci:check": "npm run type-check && npm run format:check && npm run lint && npm run test",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
     "build": "npm run compile",
     "package": "vsce package",
-    "publish": "vsce publish",
-    "vscode:prepublish": "npm run build"
+    "publish": "vsce publish"
   },
   "dependencies": {
     "tiktoken": "^1.0.22"
   },
   "devDependencies": {
+    "@jest/globals": "^30.0.5",
+    "@types/jest": "^30.0.0",
     "@types/node": "^24.3.0",
     "@types/vscode": "^1.74.0",
+    "@typescript-eslint/eslint-plugin": "^8.40.0",
+    "@typescript-eslint/parser": "^8.40.0",
+    "eslint": "^9.34.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
+    "jest": "^30.0.5",
+    "prettier": "^3.6.2",
+    "ts-jest": "^29.4.1",
     "typescript": "^4.9.0"
   }
 }

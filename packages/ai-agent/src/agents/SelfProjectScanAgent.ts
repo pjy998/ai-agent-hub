@@ -1,8 +1,11 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
-import { ContextCollector } from '../context/collector';
-import { ContextRanker } from '../context/ranker';
+
+const process = globalThis.process;
+import { ContextCollector } from '../context/ContextCollector';
+import { ContextRanker } from '../context/ContextRanker';
+import { outputManager } from '../utils/output-manager';
 
 export interface ProjectAnalysis {
   projectRoot: string;
@@ -144,7 +147,8 @@ export class SelfProjectScanAgent {
   private projectRoot: string;
 
   constructor(projectRoot?: string) {
-    this.projectRoot = projectRoot || vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || process.cwd();
+    this.projectRoot =
+      projectRoot || vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || process.cwd();
     this.contextCollector = new ContextCollector(this.projectRoot);
     this.contextRanker = new ContextRanker();
   }
@@ -153,8 +157,8 @@ export class SelfProjectScanAgent {
    * 执行完整的项目自我分析
    */
   async scanProject(): Promise<ProjectAnalysis> {
-    console.log('🔍 开始项目自我分析...');
-    
+    outputManager.logInfo('🔍 开始项目自我分析...');
+
     const analysis: ProjectAnalysis = {
       projectRoot: this.projectRoot,
       structure: await this.analyzeProjectStructure(),
@@ -163,13 +167,13 @@ export class SelfProjectScanAgent {
       quality: await this.assessCodeQuality(),
       security: await this.performSecurityAudit(),
       recommendations: [],
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
     // 生成改进建议
     analysis.recommendations = await this.generateRecommendations(analysis);
 
-    console.log('✅ 项目分析完成');
+    outputManager.logInfo('✅ 项目分析完成');
     return analysis;
   }
 
@@ -177,8 +181,8 @@ export class SelfProjectScanAgent {
    * 分析项目结构
    */
   private async analyzeProjectStructure(): Promise<ProjectStructure> {
-    console.log('📁 分析项目结构...');
-    
+    outputManager.logInfo('📁 分析项目结构...');
+
     const directories: DirectoryInfo[] = [];
     const files: FileInfo[] = [];
     const fileTypes: Record<string, number> = {};
@@ -204,7 +208,7 @@ export class SelfProjectScanAgent {
         } else {
           const stats = await fs.promises.stat(fullPath);
           const extension = path.extname(entry.name);
-          
+
           // 计算文件行数
           let lines = 0;
           if (this.isTextFile(extension)) {
@@ -212,7 +216,7 @@ export class SelfProjectScanAgent {
               const content = await fs.promises.readFile(fullPath, 'utf-8');
               lines = content.split('\n').length;
               totalLines += lines;
-            } catch (error) {
+            } catch (_error) {
               // 忽略读取错误
             }
           }
@@ -224,7 +228,7 @@ export class SelfProjectScanAgent {
             size: stats.size,
             lines,
             lastModified: stats.mtime,
-            importance: this.calculateFileImportance(relativeFullPath, extension)
+            importance: this.calculateFileImportance(relativeFullPath, extension),
           };
 
           files.push(fileInfo);
@@ -239,7 +243,7 @@ export class SelfProjectScanAgent {
           name: path.basename(relativePath),
           fileCount,
           subdirectories,
-          purpose: this.identifyDirectoryPurpose(relativePath)
+          purpose: this.identifyDirectoryPurpose(relativePath),
         });
       }
     };
@@ -251,7 +255,7 @@ export class SelfProjectScanAgent {
       files,
       totalFiles: files.length,
       totalLines,
-      fileTypes
+      fileTypes,
     };
   }
 
@@ -259,8 +263,8 @@ export class SelfProjectScanAgent {
    * 识别核心组件
    */
   private async identifyCoreComponents(): Promise<CoreComponent[]> {
-    console.log('🔧 识别核心组件...');
-    
+    outputManager.logInfo('🔧 识别核心组件...');
+
     const components: CoreComponent[] = [];
 
     // VS Code Extension
@@ -291,14 +295,14 @@ export class SelfProjectScanAgent {
    */
   private async analyzeVSCodeExtension(): Promise<CoreComponent | null> {
     const extensionPath = path.join(this.projectRoot, 'packages/ai-agent');
-    
+
     if (!fs.existsSync(extensionPath)) {
       return null;
     }
 
     const packageJsonPath = path.join(extensionPath, 'package.json');
     const extensionTsPath = path.join(extensionPath, 'src/extension.ts');
-    
+
     const issues: string[] = [];
     let status: CoreComponent['status'] = 'complete';
 
@@ -320,7 +324,7 @@ export class SelfProjectScanAgent {
         issues.push('MCP SDK导入路径错误导致扩展无法启动');
         status = 'broken';
       }
-    } catch (error) {
+    } catch (_error) {
       issues.push('无法读取extension.ts文件');
       status = 'broken';
     }
@@ -333,7 +337,7 @@ export class SelfProjectScanAgent {
       entryPoints: ['src/extension.ts'],
       publicApis: ['activate', 'deactivate'],
       dependencies: ['@vscode/vsce', 'vscode'],
-      issues
+      issues,
     };
   }
 
@@ -342,7 +346,7 @@ export class SelfProjectScanAgent {
    */
   private async analyzeMCPServer(): Promise<CoreComponent | null> {
     const mcpPath = path.join(this.projectRoot, 'packages/ai-mcp');
-    
+
     if (!fs.existsSync(mcpPath)) {
       return null;
     }
@@ -358,7 +362,7 @@ export class SelfProjectScanAgent {
         if (content.includes('模拟 AI 响应')) {
           issues.push('使用模拟AI响应，未集成真实模型');
         }
-      } catch (error) {
+      } catch (_error) {
         issues.push('无法读取AI管理器文件');
       }
     }
@@ -371,7 +375,7 @@ export class SelfProjectScanAgent {
       entryPoints: ['src/index.ts'],
       publicApis: ['startServer', 'executeWorkflow'],
       dependencies: ['@modelcontextprotocol/sdk'],
-      issues
+      issues,
     };
   }
 
@@ -380,7 +384,7 @@ export class SelfProjectScanAgent {
    */
   private async analyzePresetSystem(): Promise<CoreComponent | null> {
     const presetsPath = path.join(this.projectRoot, 'agents/presets');
-    
+
     if (!fs.existsSync(presetsPath)) {
       return null;
     }
@@ -396,7 +400,7 @@ export class SelfProjectScanAgent {
       entryPoints: yamlFiles,
       publicApis: ['loadPreset', 'executePreset'],
       dependencies: ['yaml'],
-      issues: yamlFiles.length === 0 ? ['没有找到预设文件'] : []
+      issues: yamlFiles.length === 0 ? ['没有找到预设文件'] : [],
     };
   }
 
@@ -405,7 +409,7 @@ export class SelfProjectScanAgent {
    */
   private async analyzeContextIntelligence(): Promise<CoreComponent | null> {
     const contextPath = path.join(this.projectRoot, 'packages/ai-agent/src/context');
-    
+
     if (!fs.existsSync(contextPath)) {
       return null;
     }
@@ -434,7 +438,7 @@ export class SelfProjectScanAgent {
       entryPoints: ['collector.ts', 'ranker.ts'],
       publicApis: ['collectContext', 'rankContext'],
       dependencies: [],
-      issues
+      issues,
     };
   }
 
@@ -443,7 +447,7 @@ export class SelfProjectScanAgent {
    */
   private async analyzeToolsFramework(): Promise<CoreComponent | null> {
     const toolsPath = path.join(this.projectRoot, 'packages/ai-mcp/src/tools');
-    
+
     if (!fs.existsSync(toolsPath)) {
       return null;
     }
@@ -461,7 +465,7 @@ export class SelfProjectScanAgent {
         if (!content.includes('validateFilePath') || content.includes('// TODO')) {
           issues.push('文件工具缺少完整的安全验证');
         }
-      } catch (error) {
+      } catch (_error) {
         issues.push('无法读取文件工具');
       }
     }
@@ -472,7 +476,7 @@ export class SelfProjectScanAgent {
         if (!content.includes('validateShellCommand') || content.includes('// TODO')) {
           issues.push('Shell工具缺少完整的安全验证');
         }
-      } catch (error) {
+      } catch (_error) {
         issues.push('无法读取Shell工具');
       }
     }
@@ -485,7 +489,7 @@ export class SelfProjectScanAgent {
       entryPoints: ['index.ts', 'manager.ts'],
       publicApis: ['executeTool', 'validateTool'],
       dependencies: [],
-      issues
+      issues,
     };
   }
 
@@ -493,15 +497,15 @@ export class SelfProjectScanAgent {
    * 分析依赖关系
    */
   private async analyzeDependencies(): Promise<DependencyAnalysis> {
-    console.log('📦 分析依赖关系...');
-    
+    outputManager.logInfo('📦 分析依赖关系...');
+
     // 这里实现依赖分析逻辑
     return {
       npmPackages: [],
       internalModules: [],
       circularDependencies: [],
       unusedDependencies: [],
-      vulnerabilities: []
+      vulnerabilities: [],
     };
   }
 
@@ -509,8 +513,8 @@ export class SelfProjectScanAgent {
    * 评估代码质量
    */
   private async assessCodeQuality(): Promise<QualityMetrics> {
-    console.log('📊 评估代码质量...');
-    
+    outputManager.logInfo('📊 评估代码质量...');
+
     // 这里实现代码质量评估逻辑
     return {
       codeComplexity: 0,
@@ -518,7 +522,7 @@ export class SelfProjectScanAgent {
       documentationScore: 0,
       typeSafetyScore: 0,
       errorHandlingScore: 0,
-      maintainabilityIndex: 0
+      maintainabilityIndex: 0,
     };
   }
 
@@ -526,15 +530,15 @@ export class SelfProjectScanAgent {
    * 执行安全审查
    */
   private async performSecurityAudit(): Promise<SecurityAudit> {
-    console.log('🔒 执行安全审查...');
-    
+    outputManager.logInfo('🔒 执行安全审查...');
+
     // 这里实现安全审查逻辑
     return {
       pathTraversalRisks: [],
       commandInjectionRisks: [],
       inputValidationIssues: [],
       privilegeEscalationRisks: [],
-      overallSecurityScore: 0
+      overallSecurityScore: 0,
     };
   }
 
@@ -542,8 +546,8 @@ export class SelfProjectScanAgent {
    * 生成改进建议
    */
   private async generateRecommendations(analysis: ProjectAnalysis): Promise<Recommendation[]> {
-    console.log('💡 生成改进建议...');
-    
+    outputManager.logInfo('💡 生成改进建议...');
+
     const recommendations: Recommendation[] = [];
 
     // 基于组件分析生成建议
@@ -557,7 +561,7 @@ export class SelfProjectScanAgent {
           impact: `影响${component.name}的正常功能`,
           effort: 'medium',
           implementation: [`检查并修复${component.path}中的问题`],
-          files: [component.path]
+          files: [component.path],
         });
       }
     }
@@ -569,15 +573,15 @@ export class SelfProjectScanAgent {
    * 生成分析报告
    */
   async generateReport(analysis: ProjectAnalysis): Promise<AnalysisReport> {
-    console.log('📄 生成分析报告...');
-    
+    outputManager.logInfo('📄 生成分析报告...');
+
     const report: AnalysisReport = {
       summary: {
         projectName: 'AI Agent Hub',
         analysisDate: new Date().toLocaleDateString('zh-CN'),
         overallHealth: this.calculateOverallHealth(analysis),
         criticalIssues: analysis.recommendations.filter(r => r.priority === 'high').length,
-        recommendations: analysis.recommendations.length
+        recommendations: analysis.recommendations.length,
       },
       sections: {
         projectOverview: this.generateProjectOverview(analysis),
@@ -586,9 +590,9 @@ export class SelfProjectScanAgent {
         securityReview: this.generateSecurityReview(analysis),
         performanceAnalysis: this.generatePerformanceAnalysis(analysis),
         improvementRoadmap: this.generateImprovementRoadmap(analysis),
-        nextSteps: this.generateNextSteps(analysis)
+        nextSteps: this.generateNextSteps(analysis),
       },
-      data: analysis
+      data: analysis,
     };
 
     return report;
@@ -597,10 +601,13 @@ export class SelfProjectScanAgent {
   /**
    * 保存分析报告到文件
    */
-  async saveReport(report: AnalysisReport, format: 'markdown' | 'json' | 'html' = 'markdown'): Promise<string> {
+  async saveReport(
+    report: AnalysisReport,
+    format: 'markdown' | 'json' | 'html' = 'markdown'
+  ): Promise<string> {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 16);
     const reportsDir = path.join(this.projectRoot, 'reports');
-    
+
     // 确保报告目录存在
     if (!fs.existsSync(reportsDir)) {
       await fs.promises.mkdir(reportsDir, { recursive: true });
@@ -625,8 +632,8 @@ export class SelfProjectScanAgent {
 
     const filepath = path.join(reportsDir, filename);
     await fs.promises.writeFile(filepath, content, 'utf-8');
-    
-    console.log(`✅ 报告已保存: ${filepath}`);
+
+    outputManager.logInfo(`✅ 报告已保存: ${filepath}`);
     return filepath;
   }
 
@@ -638,30 +645,41 @@ export class SelfProjectScanAgent {
   }
 
   private isTextFile(extension: string): boolean {
-    const textExtensions = ['.ts', '.js', '.json', '.yaml', '.yml', '.md', '.txt', '.css', '.html', '.xml'];
+    const textExtensions = [
+      '.ts',
+      '.js',
+      '.json',
+      '.yaml',
+      '.yml',
+      '.md',
+      '.txt',
+      '.css',
+      '.html',
+      '.xml',
+    ];
     return textExtensions.includes(extension.toLowerCase());
   }
 
   private calculateFileImportance(filePath: string, extension: string): number {
     let importance = 0;
-    
+
     // 基于文件类型
     if (['.ts', '.js'].includes(extension)) importance += 3;
     else if (['.json', '.yaml', '.yml'].includes(extension)) importance += 2;
     else if (['.md'].includes(extension)) importance += 1;
-    
+
     // 基于文件路径
     if (filePath.includes('src/')) importance += 2;
     if (filePath.includes('test')) importance += 1;
     if (filePath.includes('package.json')) importance += 3;
     if (filePath.includes('README')) importance += 2;
-    
+
     return importance;
   }
 
   private identifyDirectoryPurpose(dirPath: string): string {
     const pathLower = dirPath.toLowerCase();
-    
+
     if (pathLower.includes('src')) return '源代码';
     if (pathLower.includes('test')) return '测试文件';
     if (pathLower.includes('doc')) return '文档';
@@ -670,24 +688,26 @@ export class SelfProjectScanAgent {
     if (pathLower.includes('agent')) return 'AI代理';
     if (pathLower.includes('preset')) return '预设模板';
     if (pathLower.includes('package')) return '包模块';
-    
+
     return '其他';
   }
 
   private calculateOverallHealth(analysis: ProjectAnalysis): number {
     let score = 100;
-    
+
     // 基于组件状态扣分
     for (const component of analysis.components) {
       if (component.status === 'broken') score -= 20;
       else if (component.status === 'partial') score -= 10;
       else if (component.status === 'missing') score -= 15;
     }
-    
+
     // 基于推荐数量扣分
-    const criticalRecommendations = analysis.recommendations.filter(r => r.priority === 'high').length;
+    const criticalRecommendations = analysis.recommendations.filter(
+      r => r.priority === 'high'
+    ).length;
     score -= criticalRecommendations * 5;
-    
+
     return Math.max(0, Math.min(100, score));
   }
 
@@ -706,14 +726,14 @@ export class SelfProjectScanAgent {
 
 ### 文件类型分布
 ${Object.entries(analysis.structure.fileTypes)
-  .sort(([,a], [,b]) => b - a)
+  .sort(([, a], [, b]) => b - a)
   .map(([ext, count]) => `- ${ext || '无扩展名'}: ${count} 个文件`)
   .join('\n')}
 
 ### 核心组件状态
-${analysis.components.map(comp => 
-  `- **${comp.name}**: ${this.getStatusEmoji(comp.status)} ${comp.status}`
-).join('\n')}
+${analysis.components
+  .map(comp => `- **${comp.name}**: ${this.getStatusEmoji(comp.status)} ${comp.status}`)
+  .join('\n')}
     `.trim();
   }
 
@@ -722,7 +742,9 @@ ${analysis.components.map(comp =>
 ## 架构分析
 
 ### 组件详情
-${analysis.components.map(comp => `
+${analysis.components
+  .map(
+    comp => `
 #### ${comp.name}
 - **路径**: ${comp.path}
 - **类型**: ${comp.type}
@@ -731,7 +753,9 @@ ${analysis.components.map(comp => `
 - **公共API**: ${comp.publicApis.join(', ')}
 - **依赖**: ${comp.dependencies.join(', ')}
 ${comp.issues.length > 0 ? `- **问题**: ${comp.issues.join('; ')}` : ''}
-`).join('\n')}
+`
+  )
+  .join('\n')}
     `.trim();
   }
 
@@ -889,11 +913,16 @@ ${report.sections.nextSteps}
 
   private getStatusEmoji(status: CoreComponent['status']): string {
     switch (status) {
-      case 'complete': return '✅';
-      case 'partial': return '⚠️';
-      case 'missing': return '❌';
-      case 'broken': return '🔴';
-      default: return '❓';
+      case 'complete':
+        return '✅';
+      case 'partial':
+        return '⚠️';
+      case 'missing':
+        return '❌';
+      case 'broken':
+        return '🔴';
+      default:
+        return '❓';
     }
   }
 }

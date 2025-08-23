@@ -14,42 +14,48 @@ export interface ParticipantConfig {
  * 参与者配置常量
  */
 export const PARTICIPANTS_CONFIG: Record<string, ParticipantConfig> = {
+  SMART: {
+    id: 'smart',
+    name: 'Smart AI Assistant',
+    description: 'AI智能助手 - 集成ChatGPT的智能分析',
+    displayName: '@smart',
+  },
   CODE: {
     id: 'code',
     name: 'Code Analysis',
     description: '代码分析参与者',
-    displayName: '@code'
+    displayName: '@code',
   },
   REPORT: {
     id: 'report',
     name: 'Report Generator',
     description: '报告生成参与者',
-    displayName: '@report'
+    displayName: '@report',
   },
   TOKEN: {
     id: 'token',
     name: 'Token Manager',
     description: 'Token管理参与者',
-    displayName: '@token'
+    displayName: '@token',
   },
   CONFIG: {
     id: 'config',
     name: 'Config Manager',
     description: '配置管理参与者',
-    displayName: '@config'
+    displayName: '@config',
   },
   ANALYZE: {
     id: 'analyze',
     name: 'Project Analyzer',
     description: '项目分析参与者',
-    displayName: '@analyze'
+    displayName: '@analyze',
   },
   RECOMMEND: {
     id: 'recommend',
     name: 'Recommendation System',
     description: '推荐系统参与者',
-    displayName: '@recommend'
-  }
+    displayName: '@recommend',
+  },
 };
 
 /**
@@ -94,7 +100,10 @@ export class ParticipantsConfigManager {
   /**
    * 生成参与者引用文本
    */
-  static generateReference(participantKey: keyof typeof PARTICIPANTS_CONFIG, command: string): string {
+  static generateReference(
+    participantKey: keyof typeof PARTICIPANTS_CONFIG,
+    command: string
+  ): string {
     const displayName = this.getDisplayName(participantKey);
     return `${displayName} ${command}`;
   }
@@ -120,7 +129,7 @@ export class ParticipantsConfigManager {
     if (!participant) {
       return [];
     }
-    
+
     return commands.map(command => `${participant.displayName} ${command}`);
   }
 
@@ -129,9 +138,7 @@ export class ParticipantsConfigManager {
    * @param participantId 参与者ID
    * @returns 参与者名称
    */
-  static getParticipantName(
-    participantId: keyof typeof PARTICIPANTS_CONFIG
-  ): string {
+  static getParticipantName(participantId: keyof typeof PARTICIPANTS_CONFIG): string {
     const participant = this.getParticipant(participantId);
     return participant?.id || '';
   }
@@ -146,5 +153,5 @@ export const COMMON_COMMANDS = {
   GENERATE_REPORT: ['生成报告', '报告', '导出'],
   SHOW_ISSUES: ['显示问题', '问题', '建议'],
   SHOW_STATS: ['统计', '数据', '指标'],
-  HELP: ['帮助', 'help']
+  HELP: ['帮助', 'help'],
 } as const;
