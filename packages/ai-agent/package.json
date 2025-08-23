@@ -2,7 +2,7 @@
   "name": "ai-agent-vscode",
   "displayName": "AI Agent Hub",
   "description": "AI-powered development assistant with intelligent code analysis, project scanning, and automated optimization suggestions",
-  "version": "0.0.27",
+  "version": "0.0.28",
   "publisher": "ai-agent-hub",
   "type": "module",
   "engines": {
