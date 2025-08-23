@@ -1,344 +1,182 @@
 # AI Agent Hub
 
-**Language**: [English](#) | [中文](./README_CN.md)
+> AI-powered coding assistant with project analysis and intelligent workflow automation for VS Code
 
-> AI Agent Hub is a powerful VS Code extension that enhances Copilot Chat with structured, multi-step AI workflows for professional development. It transforms simple chat interactions into sophisticated coding assistants through configurable YAML presets, intelligent context collection, and transparent workflow execution.
+[![Version](https://img.shields.io/badge/version-0.0.22-blue.svg)](https://github.com/your-repo/ai-agent-hub)
+[![VS Code](https://img.shields.io/badge/VS%20Code-1.74.0+-brightgreen.svg)](https://code.visualstudio.com/)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-🚀 **Current Version**: 0.0.9 (MVP - PoC Validation)
+## 概述
 
-## 🎯 Project Goals
+AI Agent Hub 是一个强大的 VS Code 扩展，通过 Chat 参与者系统提供智能编程辅助。它采用简化的单体架构，专注于项目分析、代码质量评估和开发效率提升。
 
-**Enhance Copilot Chat AI programming experience for developers**
+## 核心特性
 
-- **Structured Workflows**: Define complex multi-step AI programming processes through YAML presets
-- **Dynamic Configuration**: Generate analysis configurations for multiple programming languages via Copilot Chat
-- **Intelligent Context**: Automatically collect project context for better AI code understanding
-- **Transparent & Controllable**: Complete Prompt replay and debugging panels to track every AI reasoning step
-- **Automated Triggers**: Auto-start workflows on file save, code selection, or chat input
-- **Multi-Agent Collaboration**: Professional agents like coder, tester, requirements working together
-- **Multi-Language Support**: Built-in templates for C#, Java, Python, JavaScript, TypeScript, Vue.js, Go, Rust and more
+### 🤖 Chat 参与者系统
+- **@code** - 多语言代码分析和优化建议
+- **@report** - 项目分析报告生成
+- **@token** - Token 使用情况监控和优化
+- **@config** - 扩展配置管理
+- **@recommend** - 智能推荐和最佳实践
 
-## 📐 System Architecture
+### 📊 项目分析引擎
+- 自动项目结构扫描
+- 多语言代码质量评估
+- 技术栈识别和分析
+- 改进建议生成
 
-### 🔗 Package Integration Overview
+### 🔧 开发工具集成
+- VS Code 原生集成
+- GitHub Copilot Chat API 支持
+- 文件系统操作
+- 配置管理
 
-AI Agent Hub consists of two main packages that work together through the Model Context Protocol (MCP):
+## 快速开始
 
-- **`ai-agent`**: VS Code extension that provides the user interface and integrates with Copilot Chat
-- **`ai-mcp`**: MCP server that handles workflow execution, tool management, and AI service coordination
+### 安装
 
-```mermaid
-flowchart TD
-    subgraph "VS Code Extension (ai-agent)"
-        A[TriggerListener]
-        B[ContextCollector]
-        C[MCPClientManager]
-        D[Chat Participants]
-        E[Project Analysis]
-    end
-    
-    subgraph "MCP Protocol Layer"
-        F[stdio Transport]
-        G[JSON-RPC Messages]
-    end
-    
-    subgraph "MCP Server (ai-mcp)"
-        H[MCPServer]
-        I[ToolManager]
-        J[AIServiceManager]
-        K[PresetEngine]
-        L[ConfigManager]
-    end
-    
-    subgraph "External Services"
-        M[File System]
-        N[Git Repository]
-        O[AI Providers]
-        P[Shell Commands]
-    end
-    
-    A -->|collect context| B
-    B -->|send request| C
-    C -->|MCP call| F
-    F -->|transport| G
-    G -->|receive| H
-    H -->|execute workflow| K
-    K -->|use tools| I
-    I -->|manage AI| J
-    J -->|configure| L
-    
-    I -->|file operations| M
-    I -->|git commands| N
-    J -->|AI requests| O
-    I -->|shell execution| P
-    
-    H -->|results| G
-    G -->|response| F
-    F -->|return| C
-    C -->|display| D
-    D -->|analysis| E
-```
+1. 在 VS Code 中搜索 "AI Agent Hub"
+2. 点击安装
+3. 重启 VS Code
 
-### 🔄 Communication Flow
+### 使用方法
 
-```mermaid
-sequenceDiagram
-    participant User
-    participant VSCode as VS Code Extension
-    participant MCP as MCP Client
-    participant Server as MCP Server
-    participant Tools as Tool System
-    participant AI as AI Services
-    
-    User->>VSCode: Trigger workflow (save/chat/select)
-    VSCode->>VSCode: Collect project context
-    VSCode->>MCP: Initialize MCP connection
-    MCP->>Server: Connect via stdio
-    VSCode->>MCP: Call execute_workflow
-    MCP->>Server: JSON-RPC request
-    Server->>Server: Load preset configuration
-    Server->>Tools: Execute workflow steps
-    Tools->>AI: Generate AI responses
-    AI->>Tools: Return results
-    Tools->>Server: Step completed
-    Server->>MCP: Return workflow results
-    MCP->>VSCode: Response data
-    VSCode->>User: Display results/insert code
-```
-
-### ⏱ Example Sequence Diagram (Save File Trigger)
-
-```plantuml
-@startuml
-participant User
-participant "VSCode\nExtension" as VSCode
-participant "Trigger\nListener" as Trigger
-participant "Context\nCollector" as Context
-participant "Flow\nDispatcher" as Dispatcher
-participant "MCP\nHub" as MCP
-participant "Flow\nRunner" as Runner
-participant "Prompt\nEngine" as Prompt
-participant "Model\nRouter" as Router
-participant "Copilot\nChat" as Copilot
-participant "VSCode\nUI" as UI
-
-User -> VSCode: Save File (Ctrl+S)
-VSCode -> Trigger: detect onFileSave
-Trigger -> Context: collect(file, language, git_diff)
-Context -> Dispatcher: dispatch("coding-with-ai", context)
-Dispatcher -> MCP: POST /mcp/run { preset: "coding-with-ai", context }
-MCP -> Runner: loadPreset("coding-with-ai.yaml")
-
-note over Runner, Prompt: Step 1: Requirements Clarification
-Runner -> Prompt: step1: clarify
-Prompt -> Router: route(model="copilot-gpt-4.1")
-Router -> VSCode: forward prompt to Copilot Chat
-VSCode -> Copilot: sendPrompt(clarify_prompt)
-Copilot -> VSCode: reply(JSON: { clarified, questions })
-VSCode -> Router: return reply
-Router -> Prompt: storeReplay(step1, prompt, reply)
-Prompt -> Runner: step1 completed
-
-note over Runner, Prompt: Step 2: Code Generation
-Runner -> Prompt: step2: coding
-Prompt -> Router: route(model="copilot-gpt-4.1")
-Router -> VSCode: forward prompt
-VSCode -> Copilot: sendPrompt(code_prompt)
-Copilot -> VSCode: reply(Markdown: code)
-VSCode -> Router: return reply
-Router -> Prompt: storeReplay(step2, prompt, reply)
-Prompt -> Runner: step2 completed
-
-note over Runner, Prompt: Step 3: Test Generation
-Runner -> Prompt: step3: test
-Prompt -> Router: route(model="copilot-gpt-4.1")
-Router -> VSCode: forward prompt
-VSCode -> Copilot: sendPrompt(test_prompt)
-Copilot -> VSCode: reply(Markdown: tests)
-VSCode -> Router: return reply
-Router -> Prompt: storeReplay(step3, prompt, reply)
-Prompt -> Runner: step3 completed
-
-Runner -> VSCode: return { code, tests }
-VSCode -> UI: insertCode(code, file)
-VSCode -> UI: showResults(tests, output_panel)
-VSCode -> UI: showReplay(step1, step2, step3)
-@enduml
-```
-
-## 🚀 Quick Start
-
-### Prerequisites
-
-- Node.js >= 18.x
-- VS Code >= 1.80.0
-- MCP CLI (`npm install -g ai-mcp`)
-- Copilot Chat GPT-4.1 API key (configured in VS Code or environment variables)
-
-### Installation
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/pjy998/ai-agent-hub.git
-   cd ai-agent-hub
+1. 打开 VS Code Chat 面板 (`Ctrl+Shift+I`)
+2. 使用 `@` 符号调用不同的 Chat 参与者：
+   ```
+   @code 分析这个函数的性能问题
+   @report 生成项目分析报告
+   @token 检查当前 token 使用情况
+   @config 显示扩展配置
+   @recommend 推荐代码改进方案
    ```
 
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
+### 命令面板
 
-3. Build and start:
-   ```bash
-   npm run build
-   cd packages/ai-agent
-   npm run start
-   ```
+- `AI Agent: C# Analysis` - 执行 C# 代码分析
+- `AI Agent: Token Probe` - 检查 token 使用情况
+- `AI Agent: Self Project Scan` - 扫描当前项目
 
-### Usage
+## 架构设计
 
-- **Chat Trigger**: Enter `ai coding` or `ai requirements` in Copilot Chat.
-- **Save Trigger**: Save a file to run `coding-with-ai.yaml`.
-- **Selection Trigger**: Select code and trigger `refactor.yaml` via right-click.
-- **Prompt Replay**: View logs in `~/.ai-agent-hub/replay/`.
+### 简化单体架构
+```
+VS Code Extension
+├── Chat Participants (@code, @report, @token, @config, @recommend)
+├── Core Services
+│   ├── Project Analysis Engine
+│   ├── Report Generator
+│   ├── Config Manager
+│   ├── Token Manager
+│   └── Language Detector
+└── VS Code Integration
+    ├── Extension Commands
+    ├── Chat API Integration
+    └── File System Operations
+```
 
-## 🛠️ Core Features (0.0.1)
+### 技术栈
+- **开发语言**: TypeScript
+- **平台**: VS Code Extension API
+- **Chat 集成**: GitHub Copilot Chat API
+- **构建工具**: npm, webpack
+- **测试框架**: Jest
 
-### 🎯 **Copilot Chat Enhancement Features**
-- **Smart Triggers**: Auto-start workflows on file save, code selection, and ai chat
-- **Context Enhancement**: Automatically collect file content, Git diffs, project structure, and other contextual information
-- **Structured Conversations**: Transform simple chats into multi-step professional programming dialogues
+## 开发指南
 
-### 🔧 **Workflow Engine**
-- **YAML Preset System**: Configurable multi-step AI workflow definitions
-- **Multi-Agent Collaboration**: Professional agents for coder, tester, and requirements analysis
-- **Process Orchestration**: Advanced flow control including sequential execution, conditional branching, and parallel processing
+### 环境要求
+- Node.js 16+
+- VS Code 1.74.0+
+- npm 或 yarn
 
-### 🎨 **Dynamic Configuration Generation**
-- **Multi-Language Support**: Built-in templates for C#, Java, Python, JavaScript, TypeScript, Vue.js, Go, Rust
-- **AI-Powered Generation**: Use `@ai-agent.config` commands to generate analysis configurations via Copilot Chat
-- **Smart Detection**: Automatically detect project languages and suggest appropriate configurations
-- **Configuration Validation**: Built-in validation and testing for generated YAML configurations
-- **Custom Requirements**: Generate tailored configurations based on specific project needs
+### 本地开发
 
-### 📊 **Transparency & Debugging**
-- **Prompt Replay**: Complete recording of every AI interaction step
-- **Debug Panel**: Visualize workflow execution status and results
-- **Performance Monitoring**: Track token usage and response times
+```bash
+# 克隆项目
+git clone <repository-url>
+cd ai-agent-hub
 
-### 📦 **Preset Workflows**
-- **coding-with-ai.yaml**: Requirements clarification → Code generation → Test writing
-- **refactor.yaml**: Code analysis → Refactoring suggestions → Test validation
-- **requirements-analysis.yaml**: Requirements breakdown → Technical solution → Implementation plan
+# 安装依赖
+npm install
 
-## 🆚 **Comparison with Regular Copilot Chat**
+# 开发模式
+npm run dev
 
-| Feature | Regular Copilot Chat | AI Agent Hub |
-|---------|---------------------|-------------|
-| **Interaction** | Single Q&A | Multi-step structured workflows |
-| **Context Understanding** | Current file | Project-level context + Git diffs |
-| **Specialization** | General AI assistant | Professional coding agent collaboration |
-| **Workflow** | Manual guidance | Automated triggering and execution |
-| **Transparency** | Black box operation | Complete Prompt replay and debugging |
-| **Customization** | Fixed patterns | Flexible YAML-configured workflows |
-| **Quality Assurance** | User-dependent validation | Built-in test generation and validation |
-| **Learning Curve** | Learn as you go | Configure once, benefit long-term |
+# 构建
+npm run build
 
-### 🎯 **Use Cases**
+# 测试
+npm test
+```
 
-**Use Regular Copilot Chat when you need:**
-- Quick code snippet generation
-- Simple question answering
-- Temporary code explanation
-
-**Use AI Agent Hub when you need:**
-- Complete feature development (requirements → code → tests)
-- Large-scale code refactoring
-- Standardized AI workflows for team collaboration
-- Traceable AI decision processes
-- Enterprise-grade code quality assurance
-
-## 📂 Project Structure
-
+### 项目结构
 ```
 ai-agent-hub/
-├─ packages/
-│  ├─ ai-agent/                    # VS Code Extension Package
-│  │   ├─ package.json             # Extension manifest & commands
-│  │   ├─ src/
-│  │   │   ├─ extension.ts          # Main extension entry point
-│  │   │   ├─ agents/               # Project analysis agents
-│  │   │   │   └─ SelfProjectScanAgent.ts
-│  │   │   ├─ context/              # Context collection system
-│  │   │   │   └─ collector.ts
-│  │   │   └─ mcp/                  # MCP client integration
-│  │   │       └─ client.ts
-│  │   └─ README.md
-│  └─ ai-mcp/                      # MCP Server Package
-│      ├─ package.json             # Server dependencies & scripts
-│      ├─ src/
-│      │   ├─ index.ts             # MCP server main entry
-│      │   ├─ ai/                  # AI service management
-│      │   │   └─ manager.ts
-│      │   ├─ tools/               # Tool system implementation
-│      │   │   ├─ index.ts         # Tool registry
-│      │   │   ├─ manager.ts       # Tool execution manager
-│      │   │   ├─ file/            # File operation tools
-│      │   │   └─ shell/           # Shell command tools
-│      │   └─ utils/               # Configuration & utilities
-│      │       └─ index.ts
-│      ├─ mcp-config.example.json  # Server configuration template
-│      └─ README.md
-├─ agents/
-│  └─ presets/                     # Shared YAML workflow definitions
-│      ├─ coding-with-ai.yaml      # Multi-step coding workflow
-│      ├─ refactor.yaml            # Code refactoring workflow
-│      ├─ requirements-analysis.yaml # Requirements analysis workflow
-│      └─ self-analyze.yaml        # Project self-analysis workflow
-├─ docs/                           # Documentation
-│  ├─ api-design.md
-│  ├─ feature-specs.md
-│  └─ requirements.md
-├─ mcp-config.json                 # MCP server configuration
-├─ package.json                    # Root workspace configuration
-├─ README.md
-├─ ROADMAP.md
-└─ LICENSE
+├── packages/
+│   ├── ai-agent/          # VS Code 扩展主包
+│   │   ├── src/
+│   │   │   ├── participants/  # Chat 参与者实现
+│   │   │   ├── services/      # 核心服务
+│   │   │   ├── commands/      # 扩展命令
+│   │   │   └── extension.ts   # 扩展入口
+│   │   └── package.json
+│   └── ai-mcp/            # MCP 相关（已弃用）
+├── docs/                  # 文档目录
+├── package.json          # 根项目配置
+└── README.md             # 项目说明
 ```
 
-### 📦 Package Responsibilities
+## 版本历史
 
-#### `ai-agent` (VS Code Extension)
-- **User Interface**: Integrates with VS Code UI and Copilot Chat
-- **Context Collection**: Gathers project context (files, git status, dependencies)
-- **MCP Client**: Communicates with ai-mcp server via Model Context Protocol
-- **Project Analysis**: Self-scanning and analysis capabilities
-- **Chat Participants**: Handles different types of AI conversations (coding, refactoring, requirements)
+### v0.0.22 (当前版本)
+- ✅ Chat 参与者系统完整实现
+- ✅ 项目分析引擎优化
+- ✅ 多语言支持增强
+- ✅ Token 管理功能
+- ✅ 配置管理系统
 
-#### `ai-mcp` (MCP Server)
-- **Workflow Engine**: Executes YAML-defined preset workflows
-- **Tool Management**: Provides file operations, shell commands, git integration
-- **AI Service Coordination**: Manages multiple AI providers and routing
-- **Configuration Management**: Handles server settings and security policies
-- **Protocol Implementation**: Implements MCP server specification
+### v0.0.9 (基础版本)
+- ✅ VS Code 扩展基础框架
+- ✅ 基本 Chat 参与者
+- ✅ 项目扫描功能
+- ✅ C# 分析支持
 
-### 🔗 Integration Points
+## 路线图
 
-1. **Shared Preset System**: Both packages use `agents/presets/` directory for workflow definitions
-2. **MCP Protocol**: Communication via JSON-RPC over stdio transport
-3. **Configuration**: `mcp-config.json` defines server startup and connection parameters
-4. **Context Sharing**: Extension collects context and passes to server for workflow execution
+### v0.1.0 (计划中)
+- 🔄 增强多语言支持
+- 🔄 高级代码质量分析
+- 🔄 可视化报告
+- 🔄 性能优化
 
-## 🤝 Contributing
+### v0.2.0 (未来)
+- 📋 企业级功能
+- 📋 团队协作支持
+- 📋 自定义规则引擎
+- 📋 API 集成扩展
 
-See `roadmap.md` for priorities. Fork, branch (`feature/your-feature`), and submit PRs. Report issues or discuss new features on GitHub Issues.
+## 贡献指南
 
-## 📄 License
+我们欢迎社区贡献！请查看 [CONTRIBUTING.md](docs/CONTRIBUTING.md) 了解详细信息。
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+### 贡献流程
+1. Fork 项目
+2. 创建功能分支
+3. 提交更改
+4. 创建 Pull Request
 
-## 🔗 Links
+## 许可证
 
-- [GitHub Repository](https://github.com/pjy998/ai-agent-hub)
-- [Issues](https://github.com/pjy998/ai-agent-hub/issues)
-- [Roadmap](roadmap.md)
+本项目采用 MIT 许可证。详见 [LICENSE](LICENSE) 文件。
+
+## 支持
+
+- 📧 邮箱: support@ai-agent-hub.com
+- 🐛 问题反馈: [GitHub Issues](https://github.com/your-repo/ai-agent-hub/issues)
+- 💬 讨论: [GitHub Discussions](https://github.com/your-repo/ai-agent-hub/discussions)
+
+---
+
+**更新日期**: 2025年8月23日
+
+**AI Agent Hub** - 让 AI 成为你的编程伙伴 🚀

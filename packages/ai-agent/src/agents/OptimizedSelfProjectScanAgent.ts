@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { OptimizedContextCollector } from '../context/optimized-collector';
 import { ContextRanker } from '../context/ranker';
+import { outputManager } from '../utils/output-manager';
 
 // 重用原有的接口定义
 export interface ProjectAnalysis {
@@ -167,7 +168,6 @@ export class OptimizedSelfProjectScanAgent {
   private optimizedCollector: OptimizedContextCollector;
   private contextRanker: ContextRanker;
   private projectRoot: string;
-  private outputChannel: vscode.OutputChannel;
   private statusBarItem: vscode.StatusBarItem;
   
   private config: OptimizationConfig = {
@@ -199,7 +199,6 @@ export class OptimizedSelfProjectScanAgent {
     
     this.contextRanker = new ContextRanker();
     
-    this.outputChannel = vscode.window.createOutputChannel('AI Agent - Optimized Project Scan');
     this.statusBarItem = vscode.window.createStatusBarItem(
       vscode.StatusBarAlignment.Left, 100
     );
@@ -717,12 +716,12 @@ export class OptimizedSelfProjectScanAgent {
   // 日志和进度方法
   private logProgress(message: string): void {
     console.log(message);
-    this.outputChannel.appendLine(message);
+    outputManager.getProjectScanChannel().appendLine(message);
   }
 
   private logError(message: string, error: Error): void {
     console.error(message, error);
-    this.outputChannel.appendLine(`${message}: ${error.message}`);
+    outputManager.logError(message, error);
   }
 
   // 报告生成方法（重用原有逻辑）
@@ -812,8 +811,8 @@ export class OptimizedSelfProjectScanAgent {
   // 清理资源
   dispose(): void {
     this.optimizedCollector.dispose();
-    this.outputChannel.dispose();
     this.statusBarItem.dispose();
+    // OutputManager handles disposal
   }
 
   // 获取配置

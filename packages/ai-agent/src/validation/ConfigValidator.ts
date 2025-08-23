@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 // 移除js-yaml依赖，使用内置解析器
 import { LanguageAnalysisConfig } from '../yaml/DynamicConfigGenerator';
+import { outputManager } from '../utils/output-manager';
 
 /**
  * 简单的YAML解析器
@@ -142,10 +143,7 @@ export interface TestCase {
  * 验证YAML配置的正确性和完整性
  */
 export class ConfigValidator {
-    private outputChannel: vscode.OutputChannel;
-
     constructor() {
-        this.outputChannel = vscode.window.createOutputChannel('AI Agent Hub - Config Validator');
     }
 
     /**
@@ -432,7 +430,7 @@ export class ConfigValidator {
             result.passed = result.failedTests.length === 0;
             
         } catch (error) {
-            this.outputChannel.appendLine(`测试执行错误: ${error instanceof Error ? error.message : '未知错误'}`);
+            outputManager.logError('测试执行错误', error instanceof Error ? error : new Error(String(error)));
         }
 
         return result;
@@ -886,6 +884,6 @@ export class ConfigValidator {
      * 清理资源
      */
     dispose(): void {
-        this.outputChannel.dispose();
+        // OutputManager handles disposal
     }
 }

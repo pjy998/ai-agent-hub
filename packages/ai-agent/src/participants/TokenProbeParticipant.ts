@@ -33,6 +33,10 @@ export class TokenProbeParticipant {
       // 解析用户意图
       if (this.isTokenProbeRequest(prompt)) {
         await this.handleTokenProbeRequest(prompt, stream, token);
+      } else if (this.isStatsRequest(prompt)) {
+        await this.handleStatsRequest(stream);
+      } else if (this.isClearRequest(prompt)) {
+        await this.handleClearRequest(stream);
       } else if (this.isHistoryRequest(prompt)) {
         await this.handleHistoryRequest(stream);
       } else if (this.isModelListRequest(prompt)) {
@@ -62,6 +66,22 @@ export class TokenProbeParticipant {
    */
   private isHistoryRequest(prompt: string): boolean {
     const keywords = ['历史', 'history', '记录', 'record', '之前', 'previous'];
+    return keywords.some(keyword => prompt.includes(keyword));
+  }
+  
+  /**
+   * 判断是否为统计报告请求
+   */
+  private isStatsRequest(prompt: string): boolean {
+    const keywords = ['统计', 'stats', 'statistics', '报告', 'report', '分析', 'analysis', '对比', 'compare'];
+    return keywords.some(keyword => prompt.includes(keyword));
+  }
+  
+  /**
+   * 判断是否为清除历史请求
+   */
+  private isClearRequest(prompt: string): boolean {
+    const keywords = ['清除', 'clear', '删除', 'delete', '重置', 'reset'];
     return keywords.some(keyword => prompt.includes(keyword));
   }
   
@@ -146,6 +166,61 @@ export class TokenProbeParticipant {
   }
   
   /**
+   * 处理统计报告请求
+   */
+  private async handleStatsRequest(stream: vscode.ChatResponseStream): Promise<void> {
+    const history = this.probeManager.getTestHistory();
+    
+    if (history.length === 0) {
+      stream.markdown('📊 **统计报告**: 暂无测试数据\n\n💡 使用 `@token 测试` 开始收集数据！');
+      return;
+    }
+    
+    // 使用TokenProbeManager的报告生成功能
+    const report = this.probeManager.generateHistoryReport();
+    stream.markdown(report);
+    
+    // 添加额外的统计信息
+    const successfulTests = history.filter(r => r.status === 'success');
+    const failedTests = history.filter(r => r.status !== 'success');
+    
+    stream.markdown('\n## 📈 详细统计\n\n');
+    stream.markdown(`- **总测试次数**: ${history.length}\n`);
+    stream.markdown(`- **成功测试**: ${successfulTests.length} (${Math.round(successfulTests.length / history.length * 100)}%)\n`);
+    stream.markdown(`- **失败测试**: ${failedTests.length} (${Math.round(failedTests.length / history.length * 100)}%)\n\n`);
+    
+    if (successfulTests.length > 0) {
+      const avgTokens = Math.round(successfulTests.reduce((sum, r) => sum + r.maxContextTokens, 0) / successfulTests.length);
+      const avgTime = Math.round(successfulTests.reduce((sum, r) => sum + r.totalTestTime, 0) / successfulTests.length);
+      const maxTokens = Math.max(...successfulTests.map(r => r.maxContextTokens));
+      const minTokens = Math.min(...successfulTests.map(r => r.maxContextTokens));
+      
+      stream.markdown('### 🎯 性能指标\n\n');
+      stream.markdown(`- **平均Token数**: ${avgTokens.toLocaleString()}\n`);
+      stream.markdown(`- **最大Token数**: ${maxTokens.toLocaleString()}\n`);
+      stream.markdown(`- **最小Token数**: ${minTokens.toLocaleString()}\n`);
+      stream.markdown(`- **平均测试时间**: ${this.formatDuration(avgTime)}\n\n`);
+    }
+    
+    stream.markdown('💡 **提示**: 使用 `@token 清除` 可以清空历史记录');
+  }
+  
+  /**
+   * 处理清除历史请求
+   */
+  private async handleClearRequest(stream: vscode.ChatResponseStream): Promise<void> {
+    const history = this.probeManager.getTestHistory();
+    
+    if (history.length === 0) {
+      stream.markdown('🗑️ **清除历史**: 当前没有历史记录需要清除。');
+      return;
+    }
+    
+    this.probeManager.clearHistory();
+    stream.markdown(`🗑️ **历史记录已清除**\n\n已成功清除 ${history.length} 条测试记录。\n\n💡 使用 \`@token 测试\` 开始新的测试！`);
+  }
+  
+  /**
    * 处理历史记录请求
    */
   private async handleHistoryRequest(stream: vscode.ChatResponseStream): Promise<void> {
@@ -167,8 +242,10 @@ export class TokenProbeParticipant {
     });
     
     if (history.length > 5) {
-      stream.markdown(`*显示最近5条记录，共${history.length}条*`);
+      stream.markdown(`*显示最近5条记录，共${history.length}条*\n\n`);
     }
+    
+    stream.markdown('💡 **提示**: 使用 `@token 统计` 查看详细分析报告');
   }
   
   /**
@@ -219,7 +296,9 @@ export class TokenProbeParticipant {
     stream.markdown('- `@token 快速测试` - 快速测试模式\n');
     stream.markdown('- `@token 测试 gpt-4.1` - 测试指定模型\n');
     stream.markdown('- `@token 历史` - 查看测试历史\n');
-    stream.markdown('- `@token 模型` - 查看支持的模型列表\n\n');
+    stream.markdown('- `@token 统计` - 查看详细统计报告\n');
+    stream.markdown('- `@token 模型` - 查看支持的模型列表\n');
+    stream.markdown('- `@token 清除` - 清空测试历史记录\n\n');
     
     stream.markdown('### 测试模式\n');
     stream.markdown('- **快速测试**: 使用预设参数，适合新手\n');
@@ -245,7 +324,9 @@ export class TokenProbeParticipant {
     stream.markdown('🚀 **快速开始**:\n');
     stream.markdown('- 输入 `测试` 开始Token限制测试\n');
     stream.markdown('- 输入 `历史` 查看测试记录\n');
+    stream.markdown('- 输入 `统计` 查看详细分析报告\n');
     stream.markdown('- 输入 `模型` 查看支持的模型\n');
+    stream.markdown('- 输入 `清除` 清空历史记录\n');
     stream.markdown('- 输入 `帮助` 获取详细使用指南\n\n');
     
     stream.markdown('💡 **提示**: Token Probe 会自动分析当前项目并生成测试报告！');

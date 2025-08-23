@@ -81,9 +81,9 @@
       "execute_workflow": "Use MCP client to call execute_workflow tool"
     },
     "extension": {
-      "chat_commands": ["@coding", "@refactor", "@requirements", "@analyze"],
+      "chat_commands": ["@analyze", "@token", "@csharp", "@report", "@recommend", "@config"],
       "triggers": ["File save", "Code selection", "Chat input"],
-      "workflows": ["coding-with-ai.yaml", "refactor.yaml", "requirements-analysis.yaml", "self-analyze.yaml"]
+      "workflows": ["csharp-coding-standards-analysis.yaml", "self-analyze.yaml"]
     }
   },
   

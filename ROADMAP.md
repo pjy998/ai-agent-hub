@@ -1,250 +1,296 @@
-# AI Agent Hub Roadmap
+# AI Agent Hub 项目路线图
 
-## 🎯 Version 0.0.9 (Enhanced MVP)
+> 基于当前 v0.0.22 版本的发展规划
 
-**Status**: ✅ Complete
+**当前版本**: v0.0.22  
+**更新日期**: 2025年8月23日
 
-### Core Features
-- [x] VS Code extension with Chat Participants (ai-agent.coding, ai-agent.refactor, ai-agent.requirements)
-- [x] MCP Server with YAML preset loading and execution
-- [x] Three core presets: coding-with-ai, refactor, requirements-analysis
-- [x] VS Code marketplace publishing pipeline
-- [x] Cross-platform MCP server support
-- [x] Chat functionality verification testing
+## 项目愿景
 
-### Architecture
-- [x] VS Code Extension (packages/ai-agent/) - Chat integration with streaming
-- [x] MCP Runtime (packages/ai-mcp/) - Workflow execution engine
-- [x] YAML Preset System (agents/presets/) - Workflow definitions
-- [x] Automated build and testing pipeline
+将 AI Agent Hub 打造成最智能、最易用的 VS Code 编程助手，通过 Chat 参与者系统为开发者提供全方位的编程支持。
 
-## 🎯 Version 0.1.0 (Current - Foundation Enhancement)
+### 核心目标
+- 🎯 **智能化**：提供精准的代码分析和建议
+- 🚀 **高效性**：显著提升开发效率
+- 🔧 **易用性**：简单直观的用户体验
+- 🌍 **通用性**：支持多种编程语言和项目类型
 
-**Status**: 🚧 In Progress (January 2025)
+## 当前状态 (v0.0.22)
 
-### Recently Completed
-- [x] **Documentation Overhaul**: Comprehensive project documentation update
-  - [x] Enhanced README.md with package integration details
-  - [x] Complete API design documentation (docs/api-design.md)
-  - [x] Security configuration guide (docs/security-guide.md)
-  - [x] Updated MCP configuration with detailed examples
-- [x] **MCP Integration Fixes**: Resolved MCP SDK import issues in ai-agent package
-- [x] **Architecture Documentation**: Detailed package responsibilities and integration points
+### ✅ 已完成功能
 
-### Current Focus Areas
-- [ ] **Real Tool Implementation**: Replace mock tools with functional implementations
-  - [x] Tool system API design completed
-  - [ ] File operation tools (read, write, update, delete)
-  - [ ] Command execution tools with security controls
-  - [ ] Code analysis and search tools
-- [ ] **Security Framework**: Implement comprehensive security controls
-  - [x] Security configuration guide created
-  - [ ] Tool whitelist/blacklist enforcement
-  - [ ] File access permission system
-  - [ ] Command execution filtering
-- [ ] **AI Service Integration**: Connect to real AI providers
-  - [x] AI service management API designed
-  - [ ] OpenAI provider implementation
-  - [ ] Azure OpenAI support
-  - [ ] Local model integration
+#### Chat 参与者系统
+- **@code** - 多语言代码分析和优化建议
+- **@report** - 项目分析报告生成
+- **@token** - Token 使用情况监控和优化
+- **@config** - 扩展配置管理
+- **@recommend** - 智能推荐和最佳实践
 
-### Known Limitations
-- ⚠️ Context Collector: Simple file concatenation, no relevance scoring
-- ⚠️ Tools System: Transitioning from mock to real implementations
-- ⚠️ UI Feedback: Limited execution status display
-- ⚠️ Security: Basic security measures, comprehensive controls in development
+#### 核心服务
+- **项目分析引擎** - 自动项目结构扫描
+- **报告生成器** - 多格式报告输出
+- **配置管理器** - 灵活的配置系统
+- **Token 管理器** - API 使用监控
+- **语言检测器** - 多语言支持
 
-## 🔧 Version 0.1.1 (Context Intelligence)
+#### VS Code 集成
+- **扩展命令** - 核心功能命令
+- **Chat API 集成** - GitHub Copilot Chat 支持
+- **文件系统操作** - 项目文件处理
 
-**Target**: March 2025  
-**Focus**: Solve prompt overflow issues, improve context quality
+#### 技术架构
+- **简化单体架构** - 无外部依赖
+- **TypeScript 实现** - 类型安全
+- **原生 VS Code 集成** - 高性能
 
-### Context Intelligence
-- [ ] Context Ranker implementation (`packages/ai-agent/src/context/ranker.ts`)
-  - [ ] File relevance scoring algorithm
-  - [ ] Top-K file selection mechanism
-  - [ ] Smart content truncation
-- [ ] Enhanced Context Collector (`packages/ai-agent/src/context/collector.ts`)
-  - [ ] Git diff collection
-  - [ ] Project structure analysis
-  - [ ] File dependency relationship analysis
-- [ ] Context caching optimization
-- [ ] Intelligent context prioritization based on user intent
+### 📊 当前指标
 
-## 🛠️ Version 0.1.2 (Advanced Tools)
+- **支持语言**: 8+ (C#, JavaScript, TypeScript, Python, Java, Go, Rust, Vue.js)
+- **Chat 参与者**: 5 个核心参与者
+- **扩展命令**: 3 个主要命令
+- **文档覆盖**: 完整的用户和开发文档
 
-**Target**: April 2025  
-**Focus**: Advanced tool capabilities and workflow control
+## 版本规划
 
-### Advanced Tools Implementation
-- [ ] Enhanced file operations
-  - [ ] Batch file processing
-  - [ ] File diff and merge capabilities
-  - [ ] Binary file handling
-- [ ] Code analysis tools
-  - [ ] AST parsing and manipulation
-  - [ ] Dependency analysis
-  - [ ] Code quality metrics
-- [ ] Development workflow tools
-  - [ ] Git integration tools
-  - [ ] Package manager operations
-  - [ ] Build system integration
-- [ ] Advanced error handling and rollback mechanisms
+### 🔄 v0.1.0 - 功能增强 (2025年12月)
 
-## 🚀 Version 0.1.3 (User Experience)
+**主题**: 多语言支持增强和用户体验优化
 
-**Target**: May 2025  
-**Focus**: Improve user experience and feedback
+#### 新增功能
+- **增强多语言支持**
+  - 新增 PHP、Ruby、Swift 支持
+  - 改进现有语言的分析精度
+  - 语言特定的最佳实践建议
 
-### UI/UX Improvements
-- [ ] Workflow execution status display
-  - [ ] Step progress indicators
-  - [ ] Real-time execution status
-  - [ ] User-friendly error messages
-- [ ] Enhanced VS Code Integration
-  - [ ] Status bar display
-  - [ ] Output panel optimization
-  - [ ] Keyboard shortcut support
-- [ ] Configuration interface
-  - [ ] Preset management
-  - [ ] Model selection
-  - [ ] Tool permission settings
-- [ ] Interactive workflow debugging
-- [ ] Workflow execution history and replay
+- **高级代码质量分析**
+  - 代码复杂度深度分析
+  - 安全漏洞检测
+  - 性能瓶颈识别
+  - 技术债务评估
 
-## 🤖 Version 0.1.4 (Multi-Model AI)
+- **可视化报告界面**
+  - 交互式 HTML 报告
+  - 图表和统计可视化
+  - 趋势分析展示
+  - 导出多种格式
 
-**Target**: June 2025  
-**Focus**: Advanced AI model integration
+- **性能优化**
+  - 文件扫描性能提升
+  - 内存使用优化
+  - 缓存机制改进
+  - 异步处理优化
 
-### Multi-Model AI Support
-- [ ] Advanced model routing and fallback
-- [ ] Claude API integration
-- [ ] Groq and other provider support
-- [ ] Local model integration (Ollama)
-- [ ] Model performance comparison and optimization
-- [ ] Intelligent model selection based on task type
-- [ ] Cost optimization and token management
+#### 改进项目
+- **用户体验优化**
+  - 更智能的上下文感知
+  - 改进的错误处理和提示
+  - 快捷键和命令优化
 
-## 🎨 Version 0.2.0 (Production Ready)
+- **配置系统增强**
+  - 项目级配置支持
+  - 配置模板和预设
+  - 配置验证和建议
 
-**Target**: November 2025  
-**Focus**: Production-grade stability and extensibility
+#### 技术改进
+- **测试覆盖率** 提升到 90%+
+- **文档完善** 包括视频教程
+- **CI/CD 优化** 自动化测试和发布
 
-### Advanced Workflow Control
-- [ ] Flow control node implementation
-  - [ ] if/else conditional branches
-  - [ ] for-each loops
-  - [ ] Parallel execution support
-- [ ] Preset validation and error handling
-  - [ ] YAML Schema validation
-  - [ ] Hot reload support
-  - [ ] User-friendly error messages
-- [ ] Workflow composition and chaining
+### 🚀 v0.2.0 - 智能化升级 (2026年2月)
 
-### Multi-Model Support
-- [ ] Multi AI model adapters
-  - [ ] Claude integration
-  - [ ] Groq support
-  - [ ] Local model support
-- [ ] Model routing strategies
-- [ ] Performance monitoring and optimization
+**主题**: AI 能力增强和智能化功能
 
-## 🌟 Version 1.0.0 (Feature Complete)
+#### 核心功能
+- **智能代码生成**
+  - 基于上下文的代码补全
+  - 自动化重构建议
+  - 代码模式识别和应用
 
-**Target**: Q1 2026
+- **项目洞察分析**
+  - 项目健康度评分
+  - 维护成本预测
+  - 技术栈演进建议
 
-### Enhanced Triggers
-- [ ] Smart file save detection (only trigger on meaningful changes)
-- [ ] Keyboard shortcuts for manual triggers
-- [ ] Workspace-specific trigger configuration
-- [ ] Git hook integration
+- **个性化推荐**
+  - 基于使用习惯的个性化建议
+  - 学习路径推荐
+  - 工具和库推荐
 
-### Advanced Context
-- [ ] Project-wide context analysis
-- [ ] Dependency graph understanding
-- [ ] Documentation integration
-- [ ] Test coverage analysis
+#### 技术升级
+- **AI 模型集成**
+  - 本地 AI 模型支持
+  - 多模型切换
+  - 模型性能优化
 
-### Collaboration Features
-- [ ] Team preset sharing
-- [ ] Workflow templates marketplace
-- [ ] Code review integration
-- [ ] Multi-developer workflow coordination
+- **扩展性架构**
+  - 插件系统
+  - 第三方集成 API
+  - 自定义规则引擎
 
-### Performance & Reliability
-- [ ] Workflow caching and optimization
-- [ ] Offline mode support
-- [ ] Background processing
-- [ ] Error recovery mechanisms
+### 🔮 v1.0.0 - 正式版本 (2026年6月)
 
-### Analytics & Insights
-- [ ] Workflow usage analytics
-- [ ] Code quality metrics
-- [ ] Productivity insights
-- [ ] AI model performance tracking
+**主题**: 稳定性和完整性
 
-## 📋 Current Priorities (Updated January 2025)
+#### 里程碑目标
+- **功能完整性** - 覆盖所有主要编程场景
+- **稳定性保证** - 99.9% 可用性
+- **性能标准** - 毫秒级响应时间
+- **生态成熟** - 丰富的插件和集成
 
-### 🔥 Immediate (v0.1.0 - Current Sprint)
-1. **Tool Implementation**: Complete transition from mock to real tool execution
-2. **Security Framework**: Implement comprehensive security controls and validation
-3. **AI Service Integration**: Connect to real AI providers (OpenAI, Azure)
-4. **Documentation**: Maintain up-to-date documentation as features are implemented
+## 技术路线图
 
-### 📈 Short-term (v0.1.1-0.1.3)  
-1. **Context Intelligence**: Implement Context Ranker to solve prompt overflow issues
-2. **User Experience**: Workflow status display and friendly error handling
-3. **Advanced Tools**: Code analysis, Git integration, and development workflow tools
-4. **Configuration**: Enhanced preset management and model selection interfaces
+### 架构演进
 
-### 🎯 Medium-term (v0.1.4-0.2.0)
-1. **Multi-Model Support**: Claude, Groq, local models, and intelligent routing
-2. **Advanced Workflows**: Flow control, parallel execution, conditional branches
-3. **Performance**: Optimization, caching, and background processing
-4. **Collaboration**: Team collaboration and preset sharing mechanisms
+```
+v0.0.22 (当前)
+├── 简化单体架构
+├── VS Code 扩展
+└── Chat 参与者系统
 
-## 🤝 Contributing
+v0.1.0
+├── 增强的单体架构
+├── 可视化组件
+└── 性能优化
 
-We welcome contributions! Priority areas:
+v0.2.0
+├── 智能化架构
+├── AI 模型集成
+└── 插件系统
 
-- **🔥 High Priority**: Context Ranker, Tools implementation, Security mechanisms
-- **📈 Medium Priority**: UI/UX improvements, Error handling, Documentation  
-- **💡 Low Priority**: New preset templates, Experimental features
+v1.0.0
+├── 成熟的功能集
+├── 稳定的架构
+└── 完整的生态
+```
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
+### 技术栈演进
 
-## 📊 Success Metrics
+#### 当前技术栈
+- **前端**: TypeScript + VS Code Extension API
+- **后端**: Node.js + VS Code Services
+- **AI 集成**: GitHub Copilot Chat API
+- **构建**: webpack + npm
 
-### v0.1.0 Targets (Q1 2025)
-- [x] Comprehensive documentation overhaul
-- [x] Security framework design
-- [ ] Real tool implementation (file operations, command execution)
-- [ ] Basic AI service integration
-- [ ] Security controls implementation
+#### 未来技术栈
+- **AI 框架**: TensorFlow.js / ONNX.js
+- **数据库**: SQLite / IndexedDB
+- **云服务**: Azure / AWS
+- **监控**: Application Insights
 
-### v0.1.4 Targets (Mid 2025)
-- [ ] Context intelligence with relevance scoring
-- [ ] Advanced tool capabilities
-- [ ] Multi-model AI support
-- [ ] Enhanced user experience with status display
-- [ ] 50+ active beta users
+## 社区和生态
 
-### v0.2.0 Targets (Q4 2025)
-- [ ] 100+ active users testing
-- [ ] <3s average workflow execution time
-- [ ] 90% workflow success rate
-- [ ] 5+ community-contributed presets
-- [ ] Advanced workflow control features
+### 开源社区建设
 
-### v1.0.0 Targets (Q2 2026)
-- [ ] 500+ active users
-- [ ] Enterprise-grade stability
-- [ ] Seamless multi-model switching
-- [ ] Complete development documentation
-- [ ] Collaboration and sharing features
+#### v0.1.0 目标
+- **贡献者**: 10+ 活跃贡献者
+- **文档**: 完整的开发者文档
+- **示例**: 丰富的使用示例
+
+#### v0.2.0 目标
+- **插件开发**: 插件开发框架
+- **社区论坛**: 官方社区平台
+- **开发者活动**: 定期技术分享
+
+#### v1.0.0 目标
+- **生态完善**: 稳定的开源生态
+- **社区成熟**: 自维护的开发者社区
+- **功能完整**: 覆盖主要开发场景
+
+### 用户增长目标
+
+```
+v0.0.22: 基础用户群体建立
+v0.1.0: 1,000+ 活跃用户
+v0.2.0: 10,000+ 活跃用户
+v1.0.0: 50,000+ 活跃用户
+```
+
+## 质量保证
+
+### 测试策略
+
+#### 自动化测试
+- **单元测试**: 90%+ 代码覆盖率
+- **集成测试**: 核心功能覆盖
+- **端到端测试**: 用户场景覆盖
+- **性能测试**: 响应时间和内存使用
+
+#### 质量门禁
+- **代码审查**: 所有代码必须经过审查
+- **自动化 CI/CD**: 自动构建和测试
+- **安全扫描**: 自动化安全漏洞检测
+- **性能监控**: 持续性能监控
+
+### 用户反馈
+
+#### 反馈渠道
+- **GitHub Issues**: Bug 报告和功能请求
+- **用户调研**: 定期用户满意度调查
+- **社区论坛**: 用户讨论和建议
+- **直接反馈**: 应用内反馈机制
+
+#### 反馈处理
+- **响应时间**: 24 小时内响应
+- **处理流程**: 标准化问题处理流程
+- **优先级**: 基于影响和紧急程度
+- **跟踪**: 完整的问题跟踪记录
+
+## 风险管理
+
+### 技术风险
+
+#### 依赖风险
+- **VS Code API 变更**: 密切跟踪 API 变化
+- **GitHub Copilot 依赖**: 准备备选方案
+- **Node.js 版本**: 及时升级和兼容性测试
+
+#### 性能风险
+- **大项目处理**: 分批处理和优化算法
+- **内存使用**: 内存监控和优化
+- **响应时间**: 异步处理和缓存策略
+
+### 市场风险
+
+#### 竞争风险
+- **功能差异化**: 专注独特价值
+- **用户体验**: 持续优化用户体验
+- **技术创新**: 保持技术领先性
+
+#### 用户风险
+- **用户留存**: 提供持续价值
+- **学习成本**: 简化使用流程
+- **迁移成本**: 提供平滑迁移路径
+
+## 成功指标
+
+### 技术指标
+- **性能**: 响应时间 < 500ms
+- **稳定性**: 可用性 > 99.5%
+- **质量**: Bug 率 < 0.1%
+- **覆盖**: 测试覆盖率 > 90%
+
+### 用户指标
+- **活跃度**: 日活跃用户增长
+- **满意度**: 用户满意度 > 4.5/5
+- **留存率**: 月留存率 > 80%
+- **推荐度**: NPS 分数 > 50
+
+### 业务指标
+- **下载量**: VS Code Marketplace 下载
+- **社区活跃**: GitHub Stars 和 Forks
+- **贡献者**: 活跃贡献者数量
+- **合作伙伴**: 生态合作伙伴数量
 
 ---
 
-*Last updated: January 15, 2025*  
-*Next review: February 15, 2025*
+## 总结
+
+AI Agent Hub 项目正处于快速发展阶段，从当前的 v0.0.22 基础版本，我们计划通过持续的功能增强、技术升级和生态建设，在 2025 年底达到 v1.0.0 正式版本。
+
+我们的目标是打造一个智能、高效、易用的 VS Code 编程助手，为全球开发者提供卓越的编程体验。
+
+**让我们一起构建未来的编程助手！** 🚀
+
+---
+
+*本路线图会根据项目进展和社区反馈持续更新，欢迎提出建议和意见。*

@@ -4,7 +4,13 @@ import * as path from 'path';
 import { SelfProjectScanAgent } from './agents/SelfProjectScanAgent';
 import { ConfigGeneratorParticipant } from './participants/ConfigGeneratorParticipant';
 import { TokenProbeParticipant } from './participants/TokenProbeParticipant';
+import { CodeAnalysisParticipant } from './participants/CodeAnalysisParticipant';
+import { ReportParticipant } from './participants/ReportParticipant';
+import { RecommendParticipant } from './participants/RecommendParticipant';
 import { registerTokenProbeCommands } from './commands/token-probe-command';
+import { registerImprovedTokenProbeCommands } from './commands/improved-token-probe';
+import { CSharpAnalysisCommand } from './commands/csharp-analysis';
+import { LLMMonitor } from './monitoring/llm-monitor';
 
 // 版本信息显示
 function showVersionInfo() {
@@ -104,62 +110,7 @@ abstract class BaseChatParticipant {
     }
 }
 
-// 编码助手
-class CodingParticipant extends BaseChatParticipant {
-    async handleRequest(
-        request: vscode.ChatRequest,
-        context: vscode.ChatContext,
-        stream: vscode.ChatResponseStream,
-        token: vscode.CancellationToken
-    ): Promise<void> {
-        try {
-            const codeContext = await this.collectContext();
-            const result = await this.workflowManager.executeWorkflow('coding-with-ai', codeContext);
-            
-            stream.markdown(result);
-        } catch (error) {
-            stream.markdown(`Error: ${error instanceof Error ? error.message : String(error)}`);
-        }
-    }
-}
 
-// 重构助手
-class RefactorParticipant extends BaseChatParticipant {
-    async handleRequest(
-        request: vscode.ChatRequest,
-        context: vscode.ChatContext,
-        stream: vscode.ChatResponseStream,
-        token: vscode.CancellationToken
-    ): Promise<void> {
-        try {
-            const codeContext = await this.collectContext();
-            const result = await this.workflowManager.executeWorkflow('refactor', codeContext);
-            
-            stream.markdown(result);
-        } catch (error) {
-            stream.markdown(`Error: ${error instanceof Error ? error.message : String(error)}`);
-        }
-    }
-}
-
-// 需求分析助手
-class RequirementsParticipant extends BaseChatParticipant {
-    async handleRequest(
-        request: vscode.ChatRequest,
-        context: vscode.ChatContext,
-        stream: vscode.ChatResponseStream,
-        token: vscode.CancellationToken
-    ): Promise<void> {
-        try {
-            const codeContext = await this.collectContext();
-            const result = await this.workflowManager.executeWorkflow('requirements-analysis', codeContext);
-            
-            stream.markdown(result);
-        } catch (error: any) {
-            stream.markdown(`Error: ${error.message}`);
-        }
-    }
-}
 
 // 自我分析助手
 class SelfAnalysisParticipant extends BaseChatParticipant {
@@ -672,15 +623,6 @@ export async function activate(context: vscode.ExtensionContext) {
         statusBarItem.tooltip = 'AI Agent Hub Connected';
         
         // 注册Chat参与者
-        const codingInstance = new CodingParticipant(workflowManager);
-        const codingParticipant = vscode.chat.createChatParticipant('ai-agent.coding', codingInstance.handleRequest.bind(codingInstance));
-        
-        const refactorInstance = new RefactorParticipant(workflowManager);
-        const refactorParticipant = vscode.chat.createChatParticipant('ai-agent.refactor', refactorInstance.handleRequest.bind(refactorInstance));
-        
-        const requirementsInstance = new RequirementsParticipant(workflowManager);
-        const requirementsParticipant = vscode.chat.createChatParticipant('ai-agent.requirements', requirementsInstance.handleRequest.bind(requirementsInstance));
-        
         const selfAnalysisInstance = new SelfAnalysisParticipant(workflowManager);
         const selfAnalysisParticipant = vscode.chat.createChatParticipant('ai-agent.analyze', selfAnalysisInstance.handleRequest.bind(selfAnalysisInstance));
         const configGeneratorInstance = new ConfigGeneratorParticipant();
@@ -689,6 +631,18 @@ export async function activate(context: vscode.ExtensionContext) {
         // 注册Token Probe Chat参与者
         const tokenProbeInstance = new TokenProbeParticipant();
         const tokenProbeParticipant = vscode.chat.createChatParticipant('ai-agent.token', tokenProbeInstance.handleRequest.bind(tokenProbeInstance));
+        
+        // 注册C# Analysis Chat参与者
+        const codeAnalysisInstance = new CodeAnalysisParticipant();
+    const codeAnalysisParticipant = vscode.chat.createChatParticipant('ai-agent.code', codeAnalysisInstance.handleRequest.bind(codeAnalysisInstance));
+        
+        // 注册Report Chat参与者
+        const reportInstance = new ReportParticipant();
+        const reportParticipant = vscode.chat.createChatParticipant('ai-agent.report', reportInstance.handleRequest.bind(reportInstance));
+        
+        // 注册Recommend Chat参与者
+        const recommendInstance = new RecommendParticipant();
+        const recommendParticipant = vscode.chat.createChatParticipant('ai-agent.recommend', recommendInstance.handleRequest.bind(recommendInstance));
         
         // 注册自我分析命令
         const analyzeSelfCommand = vscode.commands.registerCommand('ai-agent-hub.analyzeSelf', async () => {
@@ -783,14 +737,23 @@ export async function activate(context: vscode.ExtensionContext) {
         // 注册Token Probe命令
         registerTokenProbeCommands(context);
         
+        // 注册改进的Token Probe命令
+        registerImprovedTokenProbeCommands(context);
+        
+        // 注册C#分析命令
+        CSharpAnalysisCommand.registerCommands(context);
+        
+        // 初始化LLM监控
+        const llmMonitor = LLMMonitor.getInstance();
+        
         // 添加到上下文
         context.subscriptions.push(
-            codingParticipant, 
-            refactorParticipant, 
-            requirementsParticipant,
             selfAnalysisParticipant,
             configGeneratorParticipant,
             tokenProbeParticipant,
+            codeAnalysisParticipant,
+            reportParticipant,
+            recommendParticipant,
             statusBarItem,
             analyzeSelfCommand,
             generateReportCommand,

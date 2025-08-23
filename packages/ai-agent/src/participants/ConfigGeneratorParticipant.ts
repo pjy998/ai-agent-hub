@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { DynamicConfigGenerator } from '../yaml/DynamicConfigGenerator';
 import { ConfigValidator, ValidationResult, TestResult } from '../validation/ConfigValidator';
 import { languageManager, LanguagePlugin } from '../templates/ExtensibleLanguageManager';
+import { outputManager } from '../utils/output-manager';
 
 /**
  * 配置生成器Chat参与者
@@ -9,12 +10,10 @@ import { languageManager, LanguagePlugin } from '../templates/ExtensibleLanguage
  */
 export class ConfigGeneratorParticipant {
     private configGenerator: DynamicConfigGenerator;
-    private outputChannel: vscode.OutputChannel;
     private configValidator: ConfigValidator;
 
     constructor() {
         this.configGenerator = new DynamicConfigGenerator();
-        this.outputChannel = vscode.window.createOutputChannel('AI Agent Hub - Config Generator');
         this.configValidator = new ConfigValidator();
     }
 
@@ -693,7 +692,7 @@ export class ConfigGeneratorParticipant {
      */
     dispose(): void {
         this.configGenerator.dispose();
-        this.outputChannel.dispose();
         this.configValidator.dispose();
+        // OutputManager handles disposal
     }
 }

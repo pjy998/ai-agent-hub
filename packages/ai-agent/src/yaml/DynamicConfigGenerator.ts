@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { LanguageTemplates, LanguageTemplate } from '../templates/LanguageTemplates';
 import { languageManager, ExtensibleLanguageManager } from '../templates/ExtensibleLanguageManager';
+import { outputManager } from '../utils/output-manager';
 
 /**
  * 简单的YAML字符串生成器
@@ -115,10 +116,7 @@ interface PerformanceCheck {
  */
 export class DynamicConfigGenerator {
     private languageConfigs: Map<string, LanguageAnalysisConfig> = new Map();
-    private outputChannel: vscode.OutputChannel;
-
     constructor() {
-        this.outputChannel = vscode.window.createOutputChannel('AI Agent Hub - Config Generator');
         this.initializeLanguageConfigs();
     }
 
@@ -312,10 +310,10 @@ export class DynamicConfigGenerator {
             // 保存生成的配置
             this.languageConfigs.set(language.toLowerCase(), config);
             
-            this.outputChannel.appendLine(`✅ 成功生成 ${language} 语言配置`);
+            outputManager.logInfo(`成功生成 ${language} 语言配置`);
             return config;
         } catch (error) {
-            this.outputChannel.appendLine(`❌ 生成 ${language} 配置失败: ${error}`);
+            outputManager.logError(`生成 ${language} 配置失败`, error instanceof Error ? error : new Error(String(error)));
             throw error;
         }
     }
@@ -413,7 +411,7 @@ ${requirements}
             return response;
             
         } catch (error) {
-            this.outputChannel.appendLine(`❌ Copilot Chat API调用失败: ${error}`);
+            outputManager.logError('Copilot Chat API调用失败', error instanceof Error ? error : new Error(String(error)));
             // 返回模拟响应作为回退
             return `{
   "language": "示例语言",
@@ -565,7 +563,7 @@ ${requirements}
         
         fs.writeFileSync(filePath, yamlContent, 'utf8');
         
-        this.outputChannel.appendLine(`✅ YAML配置已保存到: ${filePath}`);
+        outputManager.logInfo(`YAML配置已保存到: ${filePath}`);
         return filePath;
     }
 
@@ -706,6 +704,6 @@ ${requirements}
      * 清理资源
      */
     dispose(): void {
-        this.outputChannel.dispose();
+        // OutputManager handles disposal
     }
 }

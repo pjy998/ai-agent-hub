@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as crypto from 'crypto';
+import { outputManager } from '../utils/output-manager';
 
 export interface ContextItem {
   id: string;
@@ -31,7 +32,6 @@ export class OptimizedContextCollector {
   private projectRoot: string;
   private collectedItems: ContextItem[] = [];
   private cache = new Map<string, CacheEntry>();
-  private outputChannel: vscode.OutputChannel;
   private statusBarItem: vscode.StatusBarItem;
   
   private config: OptimizationConfig = {
@@ -49,7 +49,6 @@ export class OptimizedContextCollector {
       this.config = { ...this.config, ...config };
     }
     
-    this.outputChannel = vscode.window.createOutputChannel('AI Agent - Optimized Analysis');
     this.statusBarItem = vscode.window.createStatusBarItem(
       vscode.StatusBarAlignment.Left, 100
     );
@@ -380,10 +379,11 @@ export class OptimizedContextCollector {
     this.statusBarItem.text = `$(sync~spin) 分析中... 0/${totalFiles}`;
     this.statusBarItem.show();
     
-    this.outputChannel.clear();
-    this.outputChannel.appendLine(`🚀 开始优化分析 ${totalFiles} 个文件...`);
-    this.outputChannel.appendLine(`📊 配置: 批次大小=${this.config.batchSize}, 最大文件=${this.config.maxFiles}`);
-    this.outputChannel.show(true);
+    const channel = outputManager.getProjectScanChannel();
+    channel.clear();
+    channel.appendLine(`🚀 开始优化分析 ${totalFiles} 个文件...`);
+    channel.appendLine(`📊 配置: 批次大小=${this.config.batchSize}, 最大文件=${this.config.maxFiles}`);
+    channel.show(true);
   }
 
   private updateProgress(processed: number, total: number): void {
@@ -392,7 +392,8 @@ export class OptimizedContextCollector {
     this.statusBarItem.text = `$(sync~spin) 分析中... ${processed}/${total} (${percentage}%)`;
     
     if (processed % 20 === 0 || processed === total) {
-      this.outputChannel.appendLine(`📈 进度: ${processed}/${total} (${percentage}%) - 内存: ${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(1)}MB`);
+      const channel = outputManager.getProjectScanChannel();
+      channel.appendLine(`📈 进度: ${processed}/${total} (${percentage}%) - 内存: ${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(1)}MB`);
     }
   }
 
@@ -403,11 +404,12 @@ export class OptimizedContextCollector {
       this.statusBarItem.hide();
     }, 5000);
     
-    this.outputChannel.appendLine('\n✅ 优化分析完成!');
-    this.outputChannel.appendLine(`📊 总项目数: ${totalItems}`);
-    this.outputChannel.appendLine(`⏱️ 处理时间: ${duration}ms (${(duration/1000).toFixed(1)}s)`);
-    this.outputChannel.appendLine(`💾 缓存命中: ${this.cache.size} 项`);
-    this.outputChannel.appendLine(`🧠 内存使用: ${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(1)}MB`);
+    const channel = outputManager.getProjectScanChannel();
+    channel.appendLine('\n✅ 优化分析完成!');
+    channel.appendLine(`📊 总项目数: ${totalItems}`);
+    channel.appendLine(`⏱️ 处理时间: ${duration}ms (${(duration/1000).toFixed(1)}s)`);
+    channel.appendLine(`💾 缓存命中: ${this.cache.size} 项`);
+    channel.appendLine(`🧠 内存使用: ${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(1)}MB`);
   }
 
   private errorProgress(error: Error): void {
@@ -417,7 +419,7 @@ export class OptimizedContextCollector {
       this.statusBarItem.hide();
     }, 5000);
     
-    this.outputChannel.appendLine(`\n❌ 分析失败: ${error.message}`);
+    outputManager.logError('分析失败', error);
   }
 
   // 保持原有接口兼容性
@@ -632,7 +634,7 @@ export class OptimizedContextCollector {
   dispose(): void {
     this.cache.clear();
     this.statusBarItem.dispose();
-    this.outputChannel.dispose();
+    // OutputManager handles disposal
   }
 
   // 获取性能统计

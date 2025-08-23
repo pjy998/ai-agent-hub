@@ -79,6 +79,41 @@
         "command": "ai-agent.tokenProbeClearHistory",
         "title": "AI Agent: Clear Token Probe History",
         "category": "AI Agent"
+      },
+      {
+        "command": "ai-agent.improvedTokenProbe",
+        "title": "AI Agent: Improved Token Probe",
+        "category": "AI Agent"
+      },
+      {
+        "command": "ai-agent.quickTokenProbe",
+        "title": "AI Agent: Quick Token Probe",
+        "category": "AI Agent"
+      },
+      {
+        "command": "ai-agent.customTokenProbe",
+        "title": "AI Agent: Custom Token Probe",
+        "category": "AI Agent"
+      },
+      {
+        "command": "ai-agent.showTokenStats",
+        "title": "AI Agent: Show Token Usage Statistics",
+        "category": "AI Agent"
+      },
+      {
+        "command": "ai-agent.exportTokenReport",
+        "title": "AI Agent: Export Token Usage Report",
+        "category": "AI Agent"
+      },
+      {
+        "command": "ai-agent.analyzeCSharpProject",
+        "title": "AI Agent: Analyze C# Project",
+        "category": "AI Agent"
+      },
+      {
+        "command": "ai-agent.analyzeCSharpFolder",
+        "title": "AI Agent: Analyze C# Folder",
+        "category": "AI Agent"
       }
     ],
     "menus": {
@@ -108,25 +143,36 @@
         },
         {
           "command": "ai-agent.tokenProbeClearHistory"
+        },
+        {
+          "command": "ai-agent.improvedTokenProbe",
+          "when": "workspaceFolderCount > 0"
+        },
+        {
+          "command": "ai-agent.quickTokenProbe",
+          "when": "workspaceFolderCount > 0"
+        },
+        {
+          "command": "ai-agent.customTokenProbe",
+          "when": "workspaceFolderCount > 0"
+        },
+        {
+          "command": "ai-agent.showTokenStats"
+        },
+        {
+          "command": "ai-agent.exportTokenReport"
+        },
+        {
+          "command": "ai-agent.analyzeCSharpProject",
+          "when": "workspaceFolderCount > 0"
+        },
+        {
+          "command": "ai-agent.analyzeCSharpFolder",
+          "when": "workspaceFolderCount > 0"
         }
       ]
     },
     "chatParticipants": [
-      {
-        "id": "ai-agent.coding",
-        "name": "coding",
-        "description": "AI coding assistant"
-      },
-      {
-        "id": "ai-agent.refactor",
-        "name": "refactor",
-        "description": "Code refactoring assistant"
-      },
-      {
-        "id": "ai-agent.requirements",
-        "name": "requirements",
-        "description": "Requirements analysis assistant"
-      },
       {
         "id": "ai-agent.analyze",
         "name": "analyze",
@@ -140,7 +186,23 @@
       {
         "id": "ai-agent.token",
         "name": "token",
-        "description": "Token limit testing and analysis for GitHub Copilot Chat models"
+        "description": "Token limit testing and analysis for GitHub Copilot Chat models - 测试和分析模型Token限制"
+      },
+      {
+          "id": "ai-agent.code",
+          "name": "code",
+          "description": "Multi-language code analysis and quality assessment assistant - 多语言代码分析和质量评估助手"
+      },
+      {
+        "id": "ai-agent.report",
+        "name": "report",
+        "description": "Project report generator with multiple formats - 项目报告生成器，支持多种格式"
+      },
+      {
+        "id": "ai-agent.recommend",
+        "name": "recommend",
+        "description": "Intelligent recommendation system for project improvements - 智能推荐系统，提供项目改进建议",
+        "isSticky": true
       }
     ]
   },
@@ -152,7 +214,9 @@
     "publish": "vsce publish",
     "vscode:prepublish": "npm run build"
   },
-  "dependencies": {},
+  "dependencies": {
+    "tiktoken": "^1.0.22"
+  },
   "devDependencies": {
     "@types/node": "^24.3.0",
     "@types/vscode": "^1.74.0",

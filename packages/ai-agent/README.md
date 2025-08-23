@@ -84,11 +84,19 @@ The extension works out-of-the-box with sensible defaults. For advanced configur
 
 ## 🤝 Integration
 
-### GitHub Copilot Chat Commands
+### GitHub Copilot Chat Participants
+- `@token` - Token limit testing and analysis for GitHub Copilot Chat models
+- `@csharp` - C# project analysis and code quality assessment
+- `@report` - Project report generation with multiple formats
+- `@recommend` - View and manage project improvement recommendations
 - `@analyze` - General project analysis
-- `@analyze csharp` - C# coding standards analysis
-- `@analyze 查看建议` - View improvement recommendations (Chinese)
-- `@analyze project status` - Get project health status
+- `@config` - Dynamic configuration generator for multi-language analysis
+
+**Quick Examples:**
+- `@token 测试` - Test token limits for current model
+- `@csharp 分析项目` - Analyze C# project structure and quality
+- `@report 项目分析` - Generate comprehensive project report
+- `@recommend 列表` - View all improvement recommendations
 
 ### MCP (Model Context Protocol)
 - Seamless integration with AI models
@@ -97,7 +105,9 @@ The extension works out-of-the-box with sensible defaults. For advanced configur
 
 ## 📚 Documentation
 
+- [🤖 Chat Participants Guide](https://github.com/pjy998/ai-agent-hub/blob/main/docs/chat-participants-guide.md) - Complete guide for all chat participants
 - [📖 User Guide](https://github.com/pjy998/ai-agent-hub/blob/main/docs/csharp-analysis-guide.md)
+- [🔍 Token Probe Guide](https://github.com/pjy998/ai-agent-hub/blob/main/docs/improved-token-probe-guide.md)
 - [🔧 Configuration Reference](https://github.com/pjy998/ai-agent-hub/blob/main/examples/csharp-analysis-config.json)
 - [🚀 API Documentation](https://github.com/pjy998/ai-agent-hub/blob/main/docs/api-design.md)
 - [🛡️ Security Guide](https://github.com/pjy998/ai-agent-hub/blob/main/docs/security-guide.md)
@@ -109,6 +119,15 @@ The extension works out-of-the-box with sensible defaults. For advanced configur
 - [📧 Contact](mailto:support@ai-agent-hub.com)
 
 ## 🎉 What's New
+
+### Version 0.2.0
+- ✨ **New**: `@token` - Token limit testing and analysis for GitHub Copilot Chat models
+- ✨ **New**: `@csharp` - Dedicated C# project analysis chat participant
+- ✨ **New**: `@report` - Comprehensive project report generation with multiple formats
+- ✨ **New**: `@recommend` - Intelligent recommendation system with implementation guidance
+- ✨ **New**: Complete Chat Participants Guide documentation
+- 🔧 **Improved**: Enhanced GitHub Copilot Chat integration with specialized participants
+- 🔧 **Improved**: Better user experience with context-aware assistance
 
 ### Version 0.1.0
 - ✨ **New**: C# Coding Standards Analysis with Microsoft guidelines
