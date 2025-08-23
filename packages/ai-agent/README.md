@@ -1,42 +1,42 @@
 # AI Agent Hub
 
-🤖 **智能AI编程助手 - 让AI成为你的编程伙伴！**
+🤖 **AI编程助手扩展**
 
-> 🚀 提供项目自动分析、C#编码规范检查、Token使用监控、多语言代码质量评估和GitHub Copilot Chat深度集成的强大VS Code扩展
+> 提供项目分析、C#编码规范检查、Token监控和GitHub Copilot Chat集成的VS Code扩展
 
-[![Version](https://img.shields.io/badge/version-0.0.23-blue.svg)](https://marketplace.visualstudio.com/items?itemName=jieky.ai-agent-vscode)
-[![Downloads](https://img.shields.io/badge/downloads-1K+-green.svg)](https://marketplace.visualstudio.com/items?itemName=jieky.ai-agent-vscode)
-[![Rating](https://img.shields.io/badge/rating-⭐⭐⭐⭐⭐-yellow.svg)](https://marketplace.visualstudio.com/items?itemName=jieky.ai-agent-vscode)
+[![Version](https://img.shields.io/badge/version-0.0.25-blue.svg)](https://marketplace.visualstudio.com/items?itemName=jieky.ai-agent-vscode)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/pjy998/ai-agent-hub/blob/main/LICENSE)
+[![VS Code](https://img.shields.io/badge/VS%20Code-Extension-blue.svg)](https://marketplace.visualstudio.com/items?itemName=jieky.ai-agent-vscode)
 
 ## ✨ 核心功能
 
-### 🔍 智能项目分析
-- **🤖 AI驱动扫描**: 自动分析代码库结构、依赖关系和架构模式
-- **📊 健康度评估**: 提供全面的项目健康评分和改进建议
-- **⚡ 实时洞察**: 获取代码质量和项目组织的即时反馈
-- **📈 趋势分析**: 跟踪项目质量变化趋势
+### 🔍 项目分析
+- **📊 代码扫描**: 分析代码库结构、依赖关系和基本架构
+- **📋 健康评估**: 提供项目健康评分和改进建议
+- **⚡ 质量检查**: 获取代码质量和项目组织的反馈
+- **📈 基础分析**: 项目质量基础分析功能
 
 ### 🎯 C# 编码规范检查
-- **✅ 微软标准合规**: 严格按照官方Microsoft C#编码指南检查
+- **✅ 标准检查**: 基于Microsoft C#编码指南进行检查
 - **🏷️ 命名规范**: 验证类、方法、变量的命名模式
-- **🎨 代码格式**: 确保一致的缩进、间距和代码风格
-- **🔒 安全分析**: 检测潜在安全漏洞和硬编码密钥
-- **⚡ 性能优化**: 识别性能瓶颈并提供优化建议
-- **📋 自动化报告**: 生成详细的分析报告和可执行的改进方案
+- **🎨 代码格式**: 检查缩进、间距和代码风格
+- **🔒 基础安全**: 检测常见安全问题和硬编码密钥
+- **⚡ 代码质量**: 识别常见问题并提供改进建议
+- **📋 分析报告**: 生成分析报告和改进建议
 
-### 🚀 GitHub Copilot Chat 深度集成
-- **💬 智能对话**: 6个专业Chat参与者 (@analyze, @token, @report, @config, @recommend, @code)
-- **🗣️ 自然语言命令**: 使用简单命令如 `@analyze csharp` 触发分析
-- **🎯 上下文感知**: 自动使用当前工作区进行分析
-- **🎨 交互式结果**: 在Copilot Chat中直接查看丰富格式的结果
-- **🔄 实时协作**: 与AI助手进行实时代码讨论和优化
+### 🚀 GitHub Copilot Chat 集成
+- **💬 Chat参与者**: 6个Chat参与者 (@analyze, @token, @report, @config, @recommend, @code)
+- **🗣️ 命令支持**: 使用命令如 `@analyze csharp` 触发分析
+- **🎯 工作区集成**: 基于当前工作区进行分析
+- **🎨 结果展示**: 在Copilot Chat中查看分析结果
+- **🔄 交互功能**: 通过Chat进行代码分析和讨论
 
-### 🛠️ 智能工作流自动化
-- **🔧 代码重构**: AI驱动的代码改进建议
-- **📝 需求分析**: 分析和验证项目需求
-- **⚙️ 自动配置**: 生成 `.editorconfig` 和分析规则文件
-- **🌐 多语言支持**: 可扩展架构支持多种编程语言
-- **📊 Token监控**: 实时监控GitHub Copilot Chat的Token使用情况
+### 🛠️ 工作流功能
+- **🔧 代码建议**: 提供代码改进建议
+- **📝 项目分析**: 分析项目结构和基本信息
+- **⚙️ 配置生成**: 生成 `.editorconfig` 和分析配置文件
+- **🌐 语言支持**: 支持C#、TypeScript等编程语言
+- **📊 Token监控**: 监控GitHub Copilot Chat的Token使用情况
 
 ## 🚀 快速开始
 

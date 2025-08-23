@@ -2,6 +2,39 @@
 
 All notable changes to the "AI Agent Hub" extension will be documented in this file.
 
+## [0.0.25] - 2025-01-23
+
+### 🚀 Enhanced
+- **Improved Token Estimation**: Replaced simple character-to-token ratio with advanced BPE-based algorithm
+  - Better handling of punctuation, numbers, and mixed-language text
+  - Model-specific adjustment factors for more accurate estimation
+  - Enhanced support for Chinese characters and special symbols
+  - More precise token counting when tiktoken is unavailable
+
+### 🔧 Fixed
+- **Market Description**: Updated extension description to be more accurate and professional
+  - Removed exaggerated claims and marketing language
+  - Focused on actual functionality and features
+
+### 🛠️ Technical Details
+- Implemented sophisticated text segmentation and token estimation
+- Added model-specific calibration factors
+- Improved fallback mechanism reliability
+
+## [0.0.24] - 2025-01-23
+
+### 🔧 Fixed
+- **tiktoken Dependency Issue**: Fixed "Cannot find module 'tiktoken'" error on Windows
+  - Added fallback implementation when tiktoken is not available
+  - Improved error handling for token calculation functionality
+  - Extension now gracefully degrades to estimation mode when tiktoken fails to install
+  - Resolved activation failures in Windows environments
+
+### 🛠️ Technical Details
+- Modified token-calculator.ts to use try-catch for tiktoken import
+- Added fallback token estimation for better cross-platform compatibility
+- Improved error logging and user feedback
+
 ## [0.0.21] - 2025-01-27
 
 ### ✨ Added

@@ -1,4 +1,11 @@
-import { encoding_for_model, get_encoding } from 'tiktoken';
+// import { encoding_for_model, get_encoding } from 'tiktoken';
+// Fallback implementation when tiktoken is not available
+let tiktoken: any = null;
+try {
+  tiktoken = require('tiktoken');
+} catch (error) {
+  console.warn('tiktoken not available, using fallback token estimation');
+}
 
 /**
  * 支持的模型类型
@@ -103,22 +110,26 @@ export class TokenCalculator {
    * 获取模型对应的编码器
    */
   private getEncoding(model: SupportedModel) {
+    if (!tiktoken) {
+      return null; // Use fallback estimation
+    }
+    
     const encodingName = this.getEncodingName(model);
     
     if (!this.encodingCache.has(encodingName)) {
       try {
         // 优先使用模型特定的编码器
         if (this.isOpenAIModel(model)) {
-          const encoding = encoding_for_model(model as any);
+          const encoding = tiktoken.encoding_for_model(model as any);
           this.encodingCache.set(encodingName, encoding);
         } else {
           // 对于非OpenAI模型，使用通用编码器
-          const encoding = get_encoding(encodingName as any);
+          const encoding = tiktoken.get_encoding(encodingName as any);
           this.encodingCache.set(encodingName, encoding);
         }
       } catch (error) {
         // 如果特定编码器不可用，使用cl100k_base作为默认
-        const encoding = get_encoding('cl100k_base');
+        const encoding = tiktoken.get_encoding('cl100k_base');
         this.encodingCache.set(encodingName, encoding);
       }
     }
@@ -172,29 +183,93 @@ export class TokenCalculator {
   }
   
   /**
-   * 估算token数量（回退方法）
+   * 更准确的token估算方法（tiktoken替代方案）
    */
   private estimateTokens(text: string, model: SupportedModel): number {
-    // 基于不同模型的字符到token比例
-    const ratioMap: Record<string, number> = {
-      'gpt-4': 3.5,
-      'gpt-4-32k': 3.5,
-      'gpt-4-turbo': 3.5,
-      'gpt-4o': 3.5,
-      'gpt-4.1': 3.5,
-      'gpt-3.5-turbo': 4,
-      'gpt-3.5-turbo-16k': 4,
-      'claude-3-sonnet': 3.8,
-      'claude-3-haiku': 3.8,
-      'claude-sonnet-3.5': 3.8,
-      'claude-sonnet-3.7': 3.8,
-      'claude-sonnet-4': 3.8,
-      'text-davinci-003': 4,
-      'text-davinci-002': 4
+    // 预处理文本
+    const normalizedText = text.trim();
+    if (!normalizedText) return 0;
+    
+    // 基于BPE tokenization的更准确估算
+    let tokenCount = 0;
+    
+    // 1. 按空格分割单词
+    const words = normalizedText.split(/\s+/);
+    
+    for (const word of words) {
+      if (!word) continue;
+      
+      // 2. 处理标点符号和特殊字符
+      const segments = word.split(/([.,!?;:()\[\]{}"'`~@#$%^&*+=<>|\\/-])/).filter(s => s);
+      
+      for (const segment of segments) {
+        if (!segment) continue;
+        
+        // 3. 标点符号通常是1个token
+        if (/^[.,!?;:()\[\]{}"'`~@#$%^&*+=<>|\\/-]+$/.test(segment)) {
+          tokenCount += segment.length;
+          continue;
+        }
+        
+        // 4. 数字处理
+        if (/^\d+$/.test(segment)) {
+          tokenCount += Math.max(1, Math.ceil(segment.length / 2));
+          continue;
+        }
+        
+        // 5. 英文单词处理
+        if (/^[a-zA-Z]+$/.test(segment)) {
+          if (segment.length <= 4) {
+            tokenCount += 1;
+          } else if (segment.length <= 8) {
+            tokenCount += 2;
+          } else {
+            tokenCount += Math.ceil(segment.length / 4);
+          }
+          continue;
+        }
+        
+        // 6. 中文字符处理
+        const chineseChars = segment.match(/[\u4e00-\u9fff]/g);
+        if (chineseChars) {
+          tokenCount += chineseChars.length;
+        }
+        
+        // 7. 其他字符按字符长度估算
+        const remainingText = segment.replace(/[\u4e00-\u9fff]/g, '');
+        if (remainingText) {
+          tokenCount += Math.ceil(remainingText.length / 3);
+        }
+      }
+    }
+    
+    // 8. 应用模型特定的调整因子
+    const adjustmentFactor = this.getModelAdjustmentFactor(model);
+    return Math.ceil(tokenCount * adjustmentFactor);
+  }
+  
+  /**
+   * 获取模型特定的调整因子
+   */
+  private getModelAdjustmentFactor(model: SupportedModel): number {
+    const factorMap: Record<string, number> = {
+      'gpt-4': 1.0,
+      'gpt-4-32k': 1.0,
+      'gpt-4-turbo': 1.0,
+      'gpt-4o': 0.95,
+      'gpt-4.1': 0.95,
+      'gpt-3.5-turbo': 1.1,
+      'gpt-3.5-turbo-16k': 1.1,
+      'claude-3-sonnet': 1.05,
+      'claude-3-haiku': 1.05,
+      'claude-sonnet-3.5': 1.02,
+      'claude-sonnet-3.7': 1.02,
+      'claude-sonnet-4': 1.0,
+      'text-davinci-003': 1.15,
+      'text-davinci-002': 1.15
     };
     
-    const ratio = ratioMap[model] || 3.5;
-    return Math.ceil(text.length / ratio);
+    return factorMap[model] || 1.0;
   }
   
   /**
